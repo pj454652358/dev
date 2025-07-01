@@ -515,17 +515,28 @@ class UIManager {
         });
         
         // 为每个食物创建标签
-        Object.values(foodGroups).forEach(group => {
+        Object.values(foodGroups).forEach((group, index) => {
             const weeklyFoodItem = document.createElement('div');
             weeklyFoodItem.className = 'weekly-food-item';
             
-            // 格式化最近日期
+            // 设置随机颜色背景（使用转盘中的颜色数组）
+            weeklyFoodItem.style.backgroundColor = colors[index % colors.length];
+            
+            // 格式化最近日期 (使用更简洁的格式)
             const latestDate = new Date(Math.max(...group.dates.map(d => d.getTime())));
-            const dateStr = latestDate.toLocaleDateString();
+            
+            // 获取月日
+            const month = latestDate.getMonth() + 1;
+            const day = latestDate.getDate();
+            
+            // 如果有多个日期，显示次数而不是具体日期
+            const dateDisplay = group.dates.length > 1 
+                ? `${month}/${day} (+${group.dates.length - 1})` 
+                : `${month}/${day}`;
             
             weeklyFoodItem.innerHTML = `
                 ${group.food}
-                <span class="weekly-food-date">${dateStr}</span>
+                <span class="weekly-food-date">${dateDisplay}</span>
             `;
             
             weeklyFoodsContainer.appendChild(weeklyFoodItem);
