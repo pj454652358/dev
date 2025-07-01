@@ -125,7 +125,7 @@ class FoodWheel {
     }
     
     // 旋转动画
-    spin(callback) {
+    spin(callback, weeklyFoods = []) {
         if (this.spinning) return;
         if (this.foods.length === 0) {
             alert('请先添加食物选项');
@@ -133,17 +133,52 @@ class FoodWheel {
         }
         
         this.spinning = true;
-        spinSound.currentTime = 0;
-        spinSound.play();
         
-        // 确保不会连续选择同一个结果
+        // 尝试播放音效文件，如果失败则使用生成的音效
+        try {
+            spinSound.currentTime = 0;
+            const playPromise = spinSound.play();
+            
+            if (playPromise !== undefined) {
+                playPromise.catch(error => {
+                    console.warn('音频文件播放失败，使用生成的音效代替', error);
+                    soundGenerator.generateSpinSound();
+                });
+            }
+        } catch(e) {
+            soundGenerator.generateSpinSound();
+        }
+        
+        // 确保不会连续选择同一个结果，且避开一周内已选择的食物
         let extraSpin = Math.random() * 360 + 360 * 5; // 至少转5圈
         let targetIdx;
+        let targetFood;
+        let availableFoods = [...this.foods];
         
-        // 计算目标位置，避免连续相同结果
-        do {
-            targetIdx = Math.floor(Math.random() * this.foods.length);
-        } while (this.foods.length > 1 && targetIdx === this.lastIdx);
+        // 从可选食物中排除一周内已选食物
+        if (weeklyFoods.length > 0) {
+            // 提取过去一周内已选择的食物名称
+            const recentFoods = weeklyFoods.map(item => item.food);
+            
+            // 从可选食物中过滤掉最近一周已选择的食物
+            const filteredFoods = this.foods.filter(food => !recentFoods.includes(food));
+            
+            // 如果过滤后还有食物可选，则使用过滤后的列表；否则使用所有食物
+            if (filteredFoods.length > 0) {
+                availableFoods = filteredFoods;
+            } else if (this.foods.length > 1) {
+                // 如果所有食物都在一周内选过了，但有多个选项，至少避免选到上次的食物
+                availableFoods = this.foods.filter(food => food !== this.foods[this.lastIdx]);
+            }
+        }
+        
+        // 从可用食物中随机选择一个
+        const randomIndex = Math.floor(Math.random() * availableFoods.length);
+        targetFood = availableFoods[randomIndex];
+        
+        // 找到这个食物在原始食物列表中的索引
+        targetIdx = this.foods.indexOf(targetFood);
+        this.lastIdx = targetIdx;
         
         // 计算指向目标食物中心的角度
         const sectorAngle = 360 / this.foods.length;
@@ -181,8 +216,19 @@ class FoodWheel {
                 this.lastIdx = targetIdx;
                 
                 // 播放结果声音
-                resultSound.currentTime = 0;
-                resultSound.play();
+                try {
+                    resultSound.currentTime = 0;
+                    const playPromise = resultSound.play();
+                    
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.warn('结果音效文件播放失败，使用生成的音效代替', error);
+                            soundGenerator.generateResultSound();
+                        });
+                    }
+                } catch(e) {
+                    soundGenerator.generateResultSound();
+                }
                 
                 if (callback) callback(this.foods[targetIdx]);
             }
@@ -197,6 +243,7 @@ class StorageManager {
     constructor() {
         this.FOODS_KEY = 'lunch_wheel_foods';
         this.HISTORY_KEY = 'lunch_wheel_history';
+        this.WEEKLY_FOODS_KEY = 'lunch_wheel_weekly_foods';
     }
     
     // 保存食物列表
@@ -219,6 +266,50 @@ class StorageManager {
     loadHistory() {
         const saved = localStorage.getItem(this.HISTORY_KEY);
         return saved ? JSON.parse(saved) : [];
+    }
+    
+    // 保存本周已选食物
+    saveWeeklyFoods(weeklyFoods) {
+        localStorage.setItem(this.WEEKLY_FOODS_KEY, JSON.stringify(weeklyFoods));
+    }
+    
+    // 加载本周已选食物
+    loadWeeklyFoods() {
+        const saved = localStorage.getItem(this.WEEKLY_FOODS_KEY);
+        if (!saved) return [];
+        
+        const weeklyFoods = JSON.parse(saved);
+        
+        // 清理超过一周的记录
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        // 过滤掉一周前的记录
+        const filteredFoods = weeklyFoods.filter(item => {
+            return new Date(item.date) >= oneWeekAgo;
+        });
+        
+        // 如果有记录被过滤掉，则保存更新后的列表
+        if (filteredFoods.length !== weeklyFoods.length) {
+            this.saveWeeklyFoods(filteredFoods);
+        }
+        
+        return filteredFoods;
+    }
+    
+    // 清空一周内已选食物
+    clearWeeklyFoods() {
+        localStorage.removeItem(this.WEEKLY_FOODS_KEY);
+    }
+    
+    // 添加一个食物到本周已选列表
+    addToWeeklyFoods(food) {
+        const weeklyFoods = this.loadWeeklyFoods();
+        weeklyFoods.push({
+            food: food,
+            date: new Date().toISOString()
+        });
+        this.saveWeeklyFoods(weeklyFoods);
     }
 }
 
@@ -250,11 +341,13 @@ class UIManager {
         // 加载数据
         this.foods = this.storage.loadFoods();
         this.history = this.storage.loadHistory();
+        this.weeklyFoods = this.storage.loadWeeklyFoods();
         
         // 更新 UI
         this.updateFoodWheel();
         this.renderFoodList();
         this.renderHistory();
+        this.renderWeeklyFoods();
         
         // 设置事件监听
         this.setupEventListeners();
@@ -277,6 +370,12 @@ class UIManager {
         
         // 清空历史
         this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
+        
+        // 清空一周内已选食物
+        const clearWeeklyFoodsBtn = document.getElementById('clear-weekly-foods');
+        if (clearWeeklyFoodsBtn) {
+            clearWeeklyFoodsBtn.addEventListener('click', () => this.clearWeeklyFoods());
+        }
     }
     
     // 切换标签
@@ -358,8 +457,17 @@ class UIManager {
             this.history.pop();
         }
         
+        // 添加到一周内已选食物列表
+        this.storage.addToWeeklyFoods(food);
+        
         this.storage.saveHistory(this.history);
         this.renderHistory();
+        this.renderWeeklyFoods(); // 更新一周内已选食物显示
+    }
+    
+    // 获取一周内已选择的食物
+    getWeeklyFoods() {
+        return this.storage.loadWeeklyFoods();
     }
     
     // 渲染历史记录
@@ -381,6 +489,49 @@ class UIManager {
         });
     }
     
+    // 渲染一周内已选食物
+    renderWeeklyFoods() {
+        const weeklyFoodsContainer = document.getElementById('weekly-foods-container');
+        const weeklyFoods = this.storage.loadWeeklyFoods();
+        
+        if (weeklyFoods.length === 0) {
+            weeklyFoodsContainer.innerHTML = '<p>本周还没有选择过食物</p>';
+            return;
+        }
+        
+        weeklyFoodsContainer.innerHTML = '';
+        
+        // 对食物进行分组，避免显示重复项
+        const foodGroups = {};
+        weeklyFoods.forEach(item => {
+            if (!foodGroups[item.food]) {
+                foodGroups[item.food] = {
+                    food: item.food,
+                    dates: [new Date(item.date)]
+                };
+            } else {
+                foodGroups[item.food].dates.push(new Date(item.date));
+            }
+        });
+        
+        // 为每个食物创建标签
+        Object.values(foodGroups).forEach(group => {
+            const weeklyFoodItem = document.createElement('div');
+            weeklyFoodItem.className = 'weekly-food-item';
+            
+            // 格式化最近日期
+            const latestDate = new Date(Math.max(...group.dates.map(d => d.getTime())));
+            const dateStr = latestDate.toLocaleDateString();
+            
+            weeklyFoodItem.innerHTML = `
+                ${group.food}
+                <span class="weekly-food-date">${dateStr}</span>
+            `;
+            
+            weeklyFoodsContainer.appendChild(weeklyFoodItem);
+        });
+    }
+    
     // 清空历史
     clearHistory() {
         if (confirm('确定要清空所有历史记录吗？')) {
@@ -389,7 +540,84 @@ class UIManager {
             this.renderHistory();
         }
     }
+    
+    // 清空一周内已选食物
+    clearWeeklyFoods() {
+        if (confirm('确定要清空一周内已选食物记录吗？')) {
+            this.storage.clearWeeklyFoods();
+            this.weeklyFoods = [];
+            this.renderWeeklyFoods();
+        }
+    }
 }
+
+// 音效生成辅助类
+class SoundGenerator {
+    constructor() {
+        this.audioContext = null;
+        this.isSoundAvailable = false;
+        
+        try {
+            // 检查浏览器是否支持 Web Audio API
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            this.audioContext = new AudioContext();
+            this.isSoundAvailable = true;
+        } catch(e) {
+            console.warn('Web Audio API 不受支持。将使用备用音效。');
+        }
+    }
+    
+    // 生成旋转音效
+    generateSpinSound() {
+        if (!this.isSoundAvailable) return;
+        
+        // 创建振荡器节点
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        // 设置频率和音量
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(220, this.audioContext.currentTime);
+        oscillator.frequency.linearRampToValueAtTime(660, this.audioContext.currentTime + 1.5);
+        
+        gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + 2);
+        
+        // 开始播放
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + 2);
+    }
+    
+    // 生成结果音效
+    generateResultSound() {
+        if (!this.isSoundAvailable) return;
+        
+        // 创建振荡器节点
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        
+        // 设置频率和音量
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, this.audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(440, this.audioContext.currentTime + 0.2);
+        
+        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
+        
+        // 开始播放
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + 0.5);
+    }
+}
+
+// 创建音效生成器实例
+const soundGenerator = new SoundGenerator();
 
 // 应用程序初始化
 document.addEventListener('DOMContentLoaded', () => {
@@ -437,11 +665,14 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
+        // 获取一周内已选择的食物
+        const weeklyFoods = ui.getWeeklyFoods();
+        
         resultDiv.textContent = '';
         foodWheel.spin((result) => {
             resultDiv.textContent = `选中：${result}`;
             ui.addHistory(result);
-        });
+        }, weeklyFoods);
     });
     
     // 初始调整尺寸

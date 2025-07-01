@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>午餐转盘</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -34,6 +34,11 @@
                     <button id="add-btn">添加</button>
                 </div>
             </div>
+            <div class="weekly-foods">
+                <h4>一周内已选食物</h4>
+                <div id="weekly-foods-container">加载中...</div>
+                <button id="clear-weekly-foods">清空一周内已选食物</button>
+            </div>
             <div class="settings-actions">
                 <button id="reset-default">恢复默认</button>
                 <button id="save-settings">保存设置</button>
@@ -47,8 +52,8 @@
         </div>
     </div>
     
-    <audio id="spin-sound" src="https://cdn.jsdelivr.net/gh/soundkit/free-sound-effects@master/mp3/Spinner%20Fidget%20Toy.mp3" preload="auto"></audio>
-    <audio id="result-sound" src="https://cdn.jsdelivr.net/gh/soundkit/free-sound-effects@master/mp3/UI%20Soundpack/MP3/Pluck%2001.mp3" preload="auto"></audio>
+    <audio id="spin-sound" src="assets/sounds/spin.mp3" preload="auto"></audio>
+    <audio id="result-sound" src="assets/sounds/result.mp3" preload="auto"></audio>
     
     <script src="script.js"></script>
 </body>

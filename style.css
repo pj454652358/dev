@@ -246,3 +246,59 @@ h1 {
     display: block;
     margin-top: 5px;
 }
+
+/* 一周内已选食物样式 */
+.weekly-foods {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.weekly-foods h4 {
+    margin-top: 0;
+    color: #666;
+    font-size: 16px;
+}
+
+#weekly-foods-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.weekly-food-item {
+    background: #f39c12;
+    color: white;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f1f1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 15px;
+    font-size: 14px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.weekly-food-date {
+    font-size: 12px;
+    color: #999;
+}
+
+#clear-weekly-foods {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 14px;
+}
+
+#clear-weekly-foods:hover {
+    background: #c0392b;
+}
