@@ -5,17 +5,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>午餐转盘</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <h1>午餐吃什么？</h1>
-        <div class="wheel-container">
-            <canvas id="wheel" width="400" height="400"></canvas>
-            <div class="pointer">▼</div>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="wheel">转盘</button>
+            <button class="tab-btn" data-tab="settings">设置</button>
+            <button class="tab-btn" data-tab="history">历史</button>
         </div>
-        <button id="spin">开始转盘</button>
-        <div id="result"></div>
+        
+        <div class="tab-content active" id="wheel-tab">
+            <div class="wheel-container">
+                <canvas id="wheel"></canvas>
+                <div class="pointer">▼</div>
+            </div>
+            <button id="spin">开始转盘</button>
+            <div id="result"></div>
+        </div>
+        
+        <div class="tab-content" id="settings-tab">
+            <h3>自定义食物选项</h3>
+            <div class="food-list">
+                <div id="foods-container"></div>
+                <div class="add-food">
+                    <input type="text" id="new-food" placeholder="添加新食物...">
+                    <button id="add-btn">添加</button>
+                </div>
+            </div>
+            <div class="settings-actions">
+                <button id="reset-default">恢复默认</button>
+                <button id="save-settings">保存设置</button>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="history-tab">
+            <h3>历史记录</h3>
+            <div id="history-list"></div>
+            <button id="clear-history">清空历史</button>
+        </div>
     </div>
+    
+    <audio id="spin-sound" src="https://cdn.jsdelivr.net/gh/soundkit/free-sound-effects@master/mp3/Spinner%20Fidget%20Toy.mp3" preload="auto"></audio>
+    <audio id="result-sound" src="https://cdn.jsdelivr.net/gh/soundkit/free-sound-effects@master/mp3/UI%20Soundpack/MP3/Pluck%2001.mp3" preload="auto"></audio>
+    
     <script src="script.js"></script>
 </body>
 </html>

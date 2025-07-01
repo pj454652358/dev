@@ -3,6 +3,7 @@ body {
     background: #f7f7f7;
     margin: 0;
     padding: 0;
+    color: #333;
 }
 
 .container {
@@ -23,12 +24,18 @@ h1 {
 .wheel-container {
     position: relative;
     display: inline-block;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 400px;
 }
 
 #wheel {
     border-radius: 50%;
     box-shadow: 0 0 8px rgba(0,0,0,0.12);
     background: #fff;
+    width: 100%;
+    height: auto;
+    display: block;
 }
 
 .pointer {
@@ -64,4 +71,178 @@ h1 {
     color: #e67e22;
     font-weight: bold;
     min-height: 32px;
+}
+
+/* 标签切换样式 */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #eee;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px;
+    font-size: 16px;
+    cursor: pointer;
+    color: #777;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.tab-btn:hover {
+    color: #27ae60;
+}
+
+.tab-btn.active {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.tab-btn.active:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #27ae60;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 食物列表样式 */
+.food-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 10px;
+}
+
+.food-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.food-item:last-child {
+    border-bottom: none;
+}
+
+.food-name {
+    flex: 1;
+    text-align: left;
+}
+
+.food-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #999;
+    font-size: 14px;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.food-actions .delete-btn:hover {
+    color: #e74c3c;
+}
+
+.add-food {
+    display: flex;
+    margin-top: 10px;
+}
+
+.add-food input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 14px;
+}
+
+.add-food button {
+    padding: 8px 15px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+.settings-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.settings-actions button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+#reset-default {
+    background: #f39c12;
+    color: white;
+}
+
+#reset-default:hover {
+    background: #e67e22;
+}
+
+#save-settings {
+    background: #2ecc71;
+    color: white;
+}
+
+#save-settings:hover {
+    background: #27ae60;
+}
+
+/* 历史记录样式 */
+#history-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 10px;
+    text-align: left;
+}
+
+.history-item {
+    padding: 10px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-food {
+    font-weight: bold;
+    color: #e67e22;
+}
+
+.history-time {
+    font-size: 12px;
+    color: #999;
+    display: block;
+    margin-top: 5px;
 }
