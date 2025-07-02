@@ -8,8 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
-// 配置服务器端口
-builder.WebHost.UseUrls("http://localhost:5000");
+// 注意：服务器端口现在从appsettings.json中的Kestrel配置读取
 
 // 添加数据库服务
 builder.Services.AddDbContext<LunchWheelDbContext>(options =>
