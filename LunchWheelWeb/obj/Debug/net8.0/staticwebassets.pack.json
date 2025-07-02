@@ -1,0 +1,49 @@
+{
+  "Files": [
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/assets/css/all.min.css",
+      "PackagePath": "staticwebassets/assets/css/all.min.css"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/assets/fonts/fa-solid-900.ttf",
+      "PackagePath": "staticwebassets/assets/fonts/fa-solid-900.ttf"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/assets/fonts/fa-solid-900.woff2",
+      "PackagePath": "staticwebassets/assets/fonts/fa-solid-900.woff2"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/assets/sounds/result.mp3",
+      "PackagePath": "staticwebassets/assets/sounds/result.mp3"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/assets/sounds/spin.mp3",
+      "PackagePath": "staticwebassets/assets/sounds/spin.mp3"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/style.css",
+      "PackagePath": "staticwebassets/css/style.css"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/script.js",
+      "PackagePath": "staticwebassets/js/script.js"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.LunchWheelWeb.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.build.LunchWheelWeb.props",
+      "PackagePath": "build\\LunchWheelWeb.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.LunchWheelWeb.props",
+      "PackagePath": "buildMultiTargeting\\LunchWheelWeb.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.LunchWheelWeb.props",
+      "PackagePath": "buildTransitive\\LunchWheelWeb.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
