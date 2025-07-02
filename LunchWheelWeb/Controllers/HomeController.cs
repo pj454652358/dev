@@ -49,7 +49,21 @@ namespace LunchWheelWeb.Controllers
         {
             if (!string.IsNullOrEmpty(foodName))
             {
-                await _foodService.AddFoodAsync(new Food { Name = foodName });
+                var result = await _foodService.AddFoodAsync(new Food { Name = foodName.Trim() });
+                
+                // 添加临时数据来显示消息
+                if (result.success)
+                {
+                    TempData["SuccessMessage"] = result.message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.message;
+                }
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "食物名称不能为空";
             }
             
             return RedirectToAction("Index");

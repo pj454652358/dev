@@ -21,6 +21,10 @@
       "PackagePath": "staticwebassets/assets/sounds/spin.mp3"
     },
     {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/messages.css",
+      "PackagePath": "staticwebassets/css/messages.css"
+    },
+    {
       "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/style.css",
       "PackagePath": "staticwebassets/css/style.css"
     },

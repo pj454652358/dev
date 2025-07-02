@@ -1,3 +1,9 @@
+// 默认食物列表
+const DEFAULT_FOODS = [
+    '米饭套餐', '面条', '麻辣烫', '沙县小吃', '快餐', '自助餐', 
+    '火锅', '烧烤', '汉堡', '寿司', '炸鸡', '沙拉'
+];
+
 // 颜色列表
 const colors = [
     '#f39c12', '#e67e22', '#e74c3c', '#9b59b6', '#2980b9', '#16a085',
@@ -13,13 +19,12 @@ const spinSound = document.getElementById('spin-sound');
 const resultSound = document.getElementById('result-sound');
 
 // 全局变量
-let foods = initialFoods || [];
+let foods = [];
 let angle = 0;
 let spinning = false;
 let wheelRadius;
 let lastResult = null;
-let history = initialHistory || [];
-let weeklyFoods = initialWeeklyFoods || [];
+let history = [];
 
 // 食物转盘类
 class FoodWheel {
@@ -46,6 +51,7 @@ class FoodWheel {
         }
         
         // 可以选择固定指向第一个食物或随机选择一个食物
+        // const initialFoodIdx = 0; // 固定指向第一个食物
         const initialFoodIdx = Math.floor(Math.random() * this.foods.length); // 随机选择一个食物
         
         // 计算扇区角度
@@ -144,6 +150,7 @@ class FoodWheel {
         }
         
         // 确保不会连续选择同一个结果，且避开一周内已选择的食物
+        let extraSpin = Math.random() * 360 + 360 * 5; // 至少转5圈
         let targetIdx;
         let targetFood;
         let availableFoods = [...this.foods];
@@ -231,162 +238,306 @@ class FoodWheel {
     }
 }
 
-// 服务器通信类
-class ServerApi {
-    // 获取食物列表
-    static async getFoods() {
+// 存储管理类
+class StorageManager {
+    constructor() {
+        this.API_URL = 'http://localhost:5000/api';
+        this.FOODS_KEY = 'lunch_wheel_foods';
+        this.HISTORY_KEY = 'lunch_wheel_history';
+        this.WEEKLY_FOODS_KEY = 'lunch_wheel_weekly_foods';
+        
+        // 本地备份模式标记，当API不可用时切换到本地存储
+        this.useLocalBackup = false;
+    }
+    
+    // API请求基础方法
+    async apiRequest(endpoint, method = 'GET', data = null) {
         try {
-            const response = await fetch('/api/LunchWheel/foods');
-            if (!response.ok) throw new Error('获取食物列表失败');
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+            
+            const response = await fetch(`${this.API_URL}/${endpoint}`, options);
+            
+            if (!response.ok) {
+                throw new Error(`API 请求失败: ${response.status}`);
+            }
+            
+            if (method === 'DELETE') {
+                return true;
+            }
+            
             return await response.json();
         } catch (error) {
-            console.error('获取食物列表错误:', error);
+            console.error('API 请求错误:', error);
+            this.useLocalBackup = true;
             return null;
         }
     }
     
     // 保存食物列表
-    static async saveFoods(foods) {
+    async saveFoods(foods) {
+        if (this.useLocalBackup) {
+            localStorage.setItem(this.FOODS_KEY, JSON.stringify(foods));
+            return;
+        }
+        
         try {
-            const response = await fetch('/api/LunchWheel/foods/save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(foods)
-            });
+            // 首先获取现有的食物列表
+            const existingFoods = await this.apiRequest('Foods');
             
-            if (!response.ok) throw new Error('保存食物列表失败');
-            
-            const result = await response.json();
-            if (result) {
-                ServerApi.showMessage(result.success ? 'success' : 'error', result.message);
+            if (!existingFoods) {
+                // 如果API不可用，退回到本地存储
+                localStorage.setItem(this.FOODS_KEY, JSON.stringify(foods));
+                return;
             }
-            return result.success;
+            
+            // 删除不在新列表中的食物
+            for (const existingFood of existingFoods) {
+                if (!foods.includes(existingFood.name)) {
+                    await this.apiRequest(`Foods/${existingFood.id}`, 'DELETE');
+                }
+            }
+            
+            // 添加新食物
+            for (const food of foods) {
+                if (!existingFoods.some(ef => ef.name === food)) {
+                    await this.apiRequest('Foods', 'POST', { name: food, isDefault: false });
+                }
+            }
         } catch (error) {
             console.error('保存食物列表错误:', error);
-            ServerApi.showMessage('error', '保存食物列表时发生错误');
-            return false;
+            // 退回到本地存储
+            localStorage.setItem(this.FOODS_KEY, JSON.stringify(foods));
         }
     }
     
-    // 显示消息
-    static showMessage(type, message) {
-        // 检查是否存在旧消息元素，如果有则移除
-        const oldSuccessMessage = document.getElementById('js-success-message');
-        const oldErrorMessage = document.getElementById('js-error-message');
-        if (oldSuccessMessage) oldSuccessMessage.remove();
-        if (oldErrorMessage) oldErrorMessage.remove();
+    // 加载食物列表
+    async loadFoods() {
+        if (this.useLocalBackup) {
+            const saved = localStorage.getItem(this.FOODS_KEY);
+            return saved ? JSON.parse(saved) : [...DEFAULT_FOODS];
+        }
         
-        // 创建新消息元素
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}`;
-        messageDiv.id = `js-${type}-message`;
-        messageDiv.textContent = message;
-        
-        // 添加到页面
-        document.body.insertBefore(messageDiv, document.body.firstChild);
-        
-        // 3秒后自动消失
-        setTimeout(() => {
-            messageDiv.style.opacity = '0';
-            messageDiv.style.transition = 'opacity 0.5s';
-            setTimeout(() => messageDiv.remove(), 500);
-        }, 3000);
-    }
-    
-    // 重置为默认食物
-    static async resetToDefaults() {
         try {
-            const response = await fetch('/api/LunchWheel/foods/reset', {
-                method: 'POST'
-            });
-            if (!response.ok) throw new Error('重置默认食物失败');
-            return await response.json();
+            const foods = await this.apiRequest('Foods');
+            
+            if (!foods) {
+                const saved = localStorage.getItem(this.FOODS_KEY);
+                return saved ? JSON.parse(saved) : [...DEFAULT_FOODS];
+            }
+            
+            // 从对象列表转换为名称数组
+            return foods.map(food => food.name);
         } catch (error) {
-            console.error('重置默认食物错误:', error);
-            return null;
+            console.error('加载食物列表错误:', error);
+            // 退回到本地存储
+            const saved = localStorage.getItem(this.FOODS_KEY);
+            return saved ? JSON.parse(saved) : [...DEFAULT_FOODS];
         }
     }
     
-    // 添加历史记录
-    static async addHistory(food) {
-        try {
-            const response = await fetch('/api/LunchWheel/history', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ food: food, time: new Date() })
-            });
-            if (!response.ok) throw new Error('添加历史记录失败');
-            return true;
-        } catch (error) {
-            console.error('添加历史记录错误:', error);
-            return false;
+    // 保存历史记录
+    async saveHistory(history) {
+        if (this.useLocalBackup) {
+            localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history));
+            return;
         }
+        
+        // 这里我们不需要保存整个历史记录，因为历史记录是通过API逐条添加的
+        // 但是如果API不可用，我们仍然需要保存到本地
+        if (history.length > 0 && history[0].time && !history[0].saved) {
+            try {
+                const result = await this.apiRequest('History', 'POST', {
+                    food: history[0].food,
+                    time: new Date(history[0].time)
+                });
+                
+                if (result) {
+                    // 标记为已保存
+                    history[0].saved = true;
+                }
+            } catch (error) {
+                console.error('保存历史记录错误:', error);
+            }
+        }
+        
+        // 总是备份到本地存储
+        localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history));
     }
     
-    // 获取历史记录
-    static async getHistory() {
+    // 加载历史记录
+    async loadHistory() {
+        if (this.useLocalBackup) {
+            const saved = localStorage.getItem(this.HISTORY_KEY);
+            return saved ? JSON.parse(saved) : [];
+        }
+        
         try {
-            const response = await fetch('/api/LunchWheel/history');
-            if (!response.ok) throw new Error('获取历史记录失败');
-            return await response.json();
+            const history = await this.apiRequest('History');
+            
+            if (!history) {
+                const saved = localStorage.getItem(this.HISTORY_KEY);
+                return saved ? JSON.parse(saved) : [];
+            }
+            
+            // 转换为前端使用的格式
+            return history.map(item => ({
+                food: item.food,
+                time: new Date(item.time).toLocaleString(),
+                saved: true
+            }));
         } catch (error) {
-            console.error('获取历史记录错误:', error);
-            return null;
+            console.error('加载历史记录错误:', error);
+            // 退回到本地存储
+            const saved = localStorage.getItem(this.HISTORY_KEY);
+            return saved ? JSON.parse(saved) : [];
         }
     }
     
     // 清空历史记录
-    static async clearHistory() {
+    async clearHistory() {
+        if (this.useLocalBackup) {
+            localStorage.removeItem(this.HISTORY_KEY);
+            return;
+        }
+        
         try {
-            const response = await fetch('/api/LunchWheel/history', {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('清空历史记录失败');
-            return true;
+            await this.apiRequest('History', 'DELETE');
+            localStorage.removeItem(this.HISTORY_KEY);
         } catch (error) {
             console.error('清空历史记录错误:', error);
-            return false;
+            localStorage.removeItem(this.HISTORY_KEY);
         }
     }
     
-    // 获取周食物
-    static async getWeeklyFoods() {
-        try {
-            const response = await fetch('/api/LunchWheel/weeklyFoods');
-            if (!response.ok) throw new Error('获取周食物失败');
-            return await response.json();
-        } catch (error) {
-            console.error('获取周食物错误:', error);
-            return null;
-        }
-    }
-    
-    // 清空周食物
-    static async clearWeeklyFoods() {
-        try {
-            const response = await fetch('/api/LunchWheel/weeklyFoods', {
-                method: 'DELETE'
+    // 加载本周已选食物
+    async loadWeeklyFoods() {
+        if (this.useLocalBackup) {
+            const saved = localStorage.getItem(this.WEEKLY_FOODS_KEY);
+            if (!saved) return [];
+            
+            const weeklyFoods = JSON.parse(saved);
+            
+            // 清理超过一周的记录
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            // 过滤掉一周前的记录
+            const filteredFoods = weeklyFoods.filter(item => {
+                return new Date(item.date) >= oneWeekAgo;
             });
-            if (!response.ok) throw new Error('清空周食物失败');
-            return true;
+            
+            // 如果有记录被过滤掉，则保存更新后的列表
+            if (filteredFoods.length !== weeklyFoods.length) {
+                this.saveWeeklyFoods(filteredFoods);
+            }
+            
+            return filteredFoods;
+        }
+        
+        try {
+            const weeklyFoods = await this.apiRequest('WeeklyFoods');
+            
+            if (!weeklyFoods) {
+                return this.loadWeeklyFoodsFromLocal();
+            }
+            
+            // 转换为前端使用的格式
+            return weeklyFoods.map(item => ({
+                food: item.food,
+                date: item.date
+            }));
+        } catch (error) {
+            console.error('加载周食物错误:', error);
+            return this.loadWeeklyFoodsFromLocal();
+        }
+    }
+    
+    // 从本地加载周食物（备份方法）
+    loadWeeklyFoodsFromLocal() {
+        const saved = localStorage.getItem(this.WEEKLY_FOODS_KEY);
+        if (!saved) return [];
+        
+        const weeklyFoods = JSON.parse(saved);
+        
+        // 清理超过一周的记录
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        // 过滤掉一周前的记录
+        return weeklyFoods.filter(item => {
+            return new Date(item.date) >= oneWeekAgo;
+        });
+    }
+    
+    // 清空一周内已选食物
+    async clearWeeklyFoods() {
+        if (this.useLocalBackup) {
+            localStorage.removeItem(this.WEEKLY_FOODS_KEY);
+            return;
+        }
+        
+        try {
+            await this.apiRequest('WeeklyFoods', 'DELETE');
+            localStorage.removeItem(this.WEEKLY_FOODS_KEY);
         } catch (error) {
             console.error('清空周食物错误:', error);
-            return false;
+            localStorage.removeItem(this.WEEKLY_FOODS_KEY);
+        }
+    }
+    
+    // 添加一个食物到本周已选列表
+    // 注意: 这个方法通常不需要直接调用，因为当添加历史记录时会自动添加到周食物
+    async addToWeeklyFoods(food) {
+        if (this.useLocalBackup) {
+            const weeklyFoods = await this.loadWeeklyFoods();
+            weeklyFoods.push({
+                food: food,
+                date: new Date().toISOString()
+            });
+            localStorage.setItem(this.WEEKLY_FOODS_KEY, JSON.stringify(weeklyFoods));
+            return;
+        }
+        
+        // 在保存历史记录时已经添加了，这里不需要额外操作
+    }
+    
+    // 重置为默认食物列表
+    async resetToDefaults() {
+        if (this.useLocalBackup) {
+            return [...DEFAULT_FOODS];
+        }
+        
+        try {
+            const foods = await this.apiRequest('Foods/reset', 'POST');
+            
+            if (!foods) {
+                return [...DEFAULT_FOODS];
+            }
+            
+            return foods.map(food => food.name);
+        } catch (error) {
+            console.error('重置默认食物错误:', error);
+            return [...DEFAULT_FOODS];
         }
     }
 }
 
 // UI 管理类
 class UIManager {
-    constructor(foodWheel) {
+    constructor(foodWheel, storageManager) {
         this.foodWheel = foodWheel;
+        this.storage = storageManager;
         this.foods = [];
         this.history = [];
-        this.weeklyFoods = [];
         
         // DOM 元素
         this.tabButtons = document.querySelectorAll('.tab-btn');
@@ -406,9 +557,9 @@ class UIManager {
     // 初始化
     async init() {
         // 加载数据
-        this.foods = foods;
-        this.history = history;
-        this.weeklyFoods = weeklyFoods;
+        this.foods = await this.storage.loadFoods();
+        this.history = await this.storage.loadHistory();
+        this.weeklyFoods = await this.storage.loadWeeklyFoods();
         
         // 更新 UI
         this.updateFoodWheel();
@@ -457,79 +608,37 @@ class UIManager {
     }
     
     // 添加新食物
-    async addFood() {
+    addFood() {
         const food = this.newFoodInput.value.trim();
-        
-        // 前端验证
-        if (!food) {
-            ServerApi.showMessage('error', '食物名称不能为空');
-            return;
+        if (food && !this.foods.includes(food)) {
+            this.foods.push(food);
+            this.renderFoodList();
+            this.newFoodInput.value = '';
+            this.updateFoodWheel();
         }
-        
-        if (this.foods.includes(food)) {
-            ServerApi.showMessage('error', '此食物已存在，不能重复添加');
-            return;
-        }
-        
-        // 添加到列表
-        this.foods.push(food);
-        this.renderFoodList();
-        this.newFoodInput.value = '';
-        this.updateFoodWheel();
-        
-        // 自动保存
-        await this.autoSaveFoods();
     }
     
     // 删除食物
-    async removeFood(index) {
+    removeFood(index) {
         this.foods.splice(index, 1);
         this.renderFoodList();
         this.updateFoodWheel();
-        
-        // 自动保存
-        await this.autoSaveFoods();
-    }
-    
-    // 自动保存食物列表
-    async autoSaveFoods() {
-        try {
-            const success = await ServerApi.saveFoods(this.foods);
-            if (success) {
-                console.log('食物列表已自动保存');
-                // 不显示成功消息，避免干扰用户
-            } else {
-                ServerApi.showMessage('error', '食物列表自动保存失败');
-            }
-        } catch (error) {
-            console.error('自动保存失败:', error);
-            ServerApi.showMessage('error', '食物列表自动保存失败');
-        }
     }
     
     // 恢复默认食物列表
     async resetToDefault() {
         if (confirm('确定要恢复默认食物列表吗？这将删除所有自定义选项。')) {
             // 使用API重置为默认食物列表
-            const defaultFoods = await ServerApi.resetToDefaults();
-            if (defaultFoods) {
-                this.foods = defaultFoods;
-                foods = defaultFoods; // 更新全局变量
-                this.renderFoodList();
-                this.updateFoodWheel();
-                // 已通过API重置，无需再次保存
-            }
+            this.foods = await this.storage.resetToDefaults();
+            this.renderFoodList();
+            this.updateFoodWheel();
         }
     }
     
     // 保存设置
     async saveSettings() {
-        const success = await ServerApi.saveFoods(this.foods);
-        if (success) {
-            alert('设置已保存！');
-        } else {
-            alert('设置保存失败！');
-        }
+        await this.storage.saveFoods(this.foods);
+        alert('设置已保存！');
     }
     
     // 渲染食物列表
@@ -560,51 +669,32 @@ class UIManager {
     async addHistory(food) {
         const now = new Date();
         const time = now.toLocaleString();
-        
-        // 添加到本地历史
-        this.history.unshift({ food, time, saved: false });
+        this.history.unshift({ food, time });
         
         // 限制历史记录数量
         if (this.history.length > 50) {
             this.history.pop();
         }
         
-        // 发送到服务器
-        await ServerApi.addHistory(food);
+        await this.storage.saveHistory(this.history);
         
-        // 重新加载历史和周食物
-        this.reloadData();
-    }
-    
-    // 重新加载数据
-    async reloadData() {
-        // 重新加载历史和周食物
-        const newHistory = await ServerApi.getHistory();
-        const newWeeklyFoods = await ServerApi.getWeeklyFoods();
-        
-        if (newHistory) {
-            this.history = newHistory;
-            history = newHistory; // 更新全局变量
-        }
-        
-        if (newWeeklyFoods) {
-            this.weeklyFoods = newWeeklyFoods;
-            weeklyFoods = newWeeklyFoods; // 更新全局变量
-        }
+        // 重新加载历史记录和周食物数据
+        this.history = await this.storage.loadHistory();
+        this.weeklyFoods = await this.storage.loadWeeklyFoods();
         
         this.renderHistory();
-        this.renderWeeklyFoods();
+        this.renderWeeklyFoods(); // 更新一周内已选食物显示
     }
     
     // 获取一周内已选择的食物
     getWeeklyFoods() {
-        return this.weeklyFoods;
+        return this.storage.loadWeeklyFoods();
     }
     
     // 渲染历史记录
     renderHistory() {
         this.historyList.innerHTML = '';
-        if (!this.history || this.history.length === 0) {
+        if (this.history.length === 0) {
             this.historyList.innerHTML = '<div class="empty-history">还没有历史记录</div>';
             return;
         }
@@ -677,24 +767,18 @@ class UIManager {
     // 清空历史
     async clearHistory() {
         if (confirm('确定要清空所有历史记录吗？')) {
-            const success = await ServerApi.clearHistory();
-            if (success) {
-                this.history = [];
-                history = []; // 更新全局变量
-                this.renderHistory();
-            }
+            await this.storage.clearHistory();
+            this.history = [];
+            this.renderHistory();
         }
     }
     
     // 清空一周内已选食物
     async clearWeeklyFoods() {
         if (confirm('确定要清空一周内已选食物记录吗？')) {
-            const success = await ServerApi.clearWeeklyFoods();
-            if (success) {
-                this.weeklyFoods = [];
-                weeklyFoods = []; // 更新全局变量
-                this.renderWeeklyFoods();
-            }
+            await this.storage.clearWeeklyFoods();
+            this.weeklyFoods = [];
+            this.renderWeeklyFoods();
         }
     }
 }
@@ -778,11 +862,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         foodWheel.resize();
     };
     
+    // 初始化存储
+    const storage = new StorageManager();
+    
+    // 加载初始数据
+    foods = await storage.loadFoods();
+    history = await storage.loadHistory();
+    
     // 初始化转盘
     const foodWheel = new FoodWheel(wheel, foods);
     
     // 初始化 UI 管理
-    const ui = new UIManager(foodWheel);
+    const ui = new UIManager(foodWheel, storage);
     
     // 显示初始指向的食物
     if (foods.length > 0) {
@@ -810,9 +901,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         const weeklyFoods = ui.getWeeklyFoods();
         
         resultDiv.textContent = '';
-        foodWheel.spin(async (result) => {
+        foodWheel.spin((result) => {
             resultDiv.textContent = `选中：${result}`;
-            await ui.addHistory(result);
+            ui.addHistory(result);
         }, weeklyFoods);
     });
     

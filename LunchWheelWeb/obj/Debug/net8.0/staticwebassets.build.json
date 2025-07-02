@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "kkayNHC4DuvZY7QUJ7MGUqF9uGTKdrKYQr2hircup/s=",
+  "Hash": "7fgrldc2HErp/JVEUYo96bxyAj25pNZ7kHuNSHrWMgg=",
   "Source": "LunchWheelWeb",
   "BasePath": "_content/LunchWheelWeb",
   "Mode": "Default",
@@ -110,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/assets/sounds/spin.mp3"
+    },
+    {
+      "Identity": "/workspaces/dev/LunchWheelWeb/wwwroot/css/messages.css",
+      "SourceId": "LunchWheelWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "/workspaces/dev/LunchWheelWeb/wwwroot/",
+      "BasePath": "_content/LunchWheelWeb",
+      "RelativePath": "css/messages.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/css/messages.css"
     },
     {
       "Identity": "/workspaces/dev/LunchWheelWeb/wwwroot/css/style.css",

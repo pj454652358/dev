@@ -5,10 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - 午餐转盘</title>
     <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="~/css/messages.css" />
 </head>
 <body>
+    <!-- 消息显示区域 -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="message success" id="success-message">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error" id="error-message">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    
     @RenderBody()
     
     @RenderSection("Scripts", required: false)
+    
+    <script>
+        // 自动隐藏消息
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.message');
+            
+            messages.forEach(message => {
+                message.classList.add('auto-hide');
+                
+                setTimeout(() => {
+                    message.remove();
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>

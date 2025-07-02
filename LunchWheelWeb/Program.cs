@@ -19,11 +19,16 @@ builder.Services.AddDbContext<LunchWheelDbContext>(options =>
 builder.Services.AddScoped<FoodService>();
 builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<WeeklyFoodService>();
+builder.Services.AddScoped<DbInitializerService>();
 
 var app = builder.Build();
 
 // 配置HTTP请求管道
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
@@ -39,19 +44,21 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 app.MapRazorPages();
 
-// 确保数据库创建
+// 初始化数据库和预加载数据
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        var dbContext = services.GetRequiredService<LunchWheelDbContext>();
-        dbContext.Database.EnsureCreated();
+        var initializer = services.GetRequiredService<DbInitializerService>();
+        await initializer.InitializeAsync();
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("数据库初始化和数据预加载完成");
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "创建数据库时发生错误");
+        logger.LogError(ex, "初始化数据库或预加载数据时发生错误");
     }
 }
 

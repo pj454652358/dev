@@ -35,28 +35,48 @@ namespace LunchWheelWeb.Controllers
         [HttpPost("foods/save")]
         public async Task<ActionResult> SaveFoods([FromBody] List<string> foods)
         {
-            // 获取现有食物
-            var existingFoods = await _foodService.GetAllFoodsAsync();
-            
-            // 删除不在新列表中的食物
-            foreach (var existingFood in existingFoods.Where(f => !f.IsDefault))
+            try
             {
-                if (!foods.Contains(existingFood.Name))
+                if (foods == null)
                 {
-                    await _foodService.DeleteFoodAsync(existingFood.Id);
+                    return BadRequest(new { success = false, message = "无效的食物列表数据" });
                 }
+                
+                // 过滤无效的食物名称
+                foods = foods.Where(f => !string.IsNullOrWhiteSpace(f)).Select(f => f.Trim()).Distinct().ToList();
+                
+                // 获取现有食物
+                var existingFoods = await _foodService.GetAllFoodsAsync();
+                
+                // 删除不在新列表中的食物（包括默认食物）
+                foreach (var existingFood in existingFoods)
+                {
+                    if (!foods.Contains(existingFood.Name))
+                    {
+                        await _foodService.DeleteFoodAsync(existingFood.Id);
+                    }
+                }
+                
+                // 添加新食物
+                foreach (var food in foods)
+                {
+                    if (!existingFoods.Any(ef => ef.Name == food))
+                    {
+                        var result = await _foodService.AddFoodAsync(new Food { Name = food });
+                        if (!result.success)
+                        {
+                            // 记录警告但继续处理其他食物
+                            Console.WriteLine($"添加食物 '{food}' 失败: {result.message}");
+                        }
+                    }
+                }
+                
+                return Ok(new { success = true, message = "食物列表保存成功" });
             }
-            
-            // 添加新食物
-            foreach (var food in foods)
+            catch (Exception ex)
             {
-                if (!existingFoods.Any(ef => ef.Name == food))
-                {
-                    await _foodService.AddFoodAsync(new Food { Name = food });
-                }
+                return StatusCode(500, new { success = false, message = $"保存食物列表时发生错误: {ex.Message}" });
             }
-            
-            return Ok();
         }
 
         // 重置为默认食物

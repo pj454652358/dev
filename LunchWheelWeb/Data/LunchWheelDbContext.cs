@@ -16,24 +16,9 @@ namespace LunchWheelWeb.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // 配置默认食物
-            var defaultFoods = new[]
-            {
-                new Food { Id = 1, Name = "米饭套餐", IsDefault = true },
-                new Food { Id = 2, Name = "面条", IsDefault = true },
-                new Food { Id = 3, Name = "麻辣烫", IsDefault = true },
-                new Food { Id = 4, Name = "沙县小吃", IsDefault = true },
-                new Food { Id = 5, Name = "快餐", IsDefault = true },
-                new Food { Id = 6, Name = "自助餐", IsDefault = true },
-                new Food { Id = 7, Name = "火锅", IsDefault = true },
-                new Food { Id = 8, Name = "烧烤", IsDefault = true },
-                new Food { Id = 9, Name = "汉堡", IsDefault = true },
-                new Food { Id = 10, Name = "寿司", IsDefault = true },
-                new Food { Id = 11, Name = "炸鸡", IsDefault = true },
-                new Food { Id = 12, Name = "沙拉", IsDefault = true }
-            };
-
-            modelBuilder.Entity<Food>().HasData(defaultFoods);
+            // 不在这里配置默认食物，使用DbInitializerService来初始化默认食物
+            // 这样可以允许用户删除默认食物而不会在应用重启后自动恢复
+            // 只有在用户主动点击"恢复默认"按钮时，默认食物才会被重新添加
         }
     }
 }
