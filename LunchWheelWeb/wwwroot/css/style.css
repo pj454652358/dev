@@ -302,16 +302,19 @@ h1 {
 .weekly-food-item {
     background: #f39c12;
     color: white;
-    padding: 8px 12px;
+    padding: 6px 10px 6px 12px;
     border-radius: 15px;
     font-size: 14px;
     margin-right: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     position: relative;
     overflow: hidden;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: all 0.2s ease;
+    min-width: 80px;
 }
 
 .weekly-food-item:hover {
@@ -319,17 +322,43 @@ h1 {
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
+.weekly-food-content {
+    display: flex;
+    flex-direction: column;
+    margin-right: 5px;
+}
+
+.weekly-food-name {
+    font-weight: 500;
+}
+
 .weekly-food-date {
     font-size: 10px;
     color: rgba(255,255,255,0.7);
     display: block;
-    margin-top: 2px;
-    text-align: center;
-    background: rgba(0,0,0,0.1);
-    border-radius: 2px;
-    padding: 1px 4px;
-    margin-left: -4px;
-    margin-right: -4px;
+}
+
+.weekly-food-delete {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    font-size: 10px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.weekly-food-delete:hover {
+    background: rgba(255, 255, 255, 0.4);
+    opacity: 1;
+    transform: scale(1.1);
 }
 
 #clear-weekly-foods {

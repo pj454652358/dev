@@ -40,5 +40,16 @@ namespace LunchWheelWeb.Services
             _context.WeeklyFoods.RemoveRange(weeklyFoods);
             await _context.SaveChangesAsync();
         }
+        
+        // 删除指定食物的所有记录
+        public async Task DeleteWeeklyFoodByNameAsync(string foodName)
+        {
+            var weeklyFoods = await _context.WeeklyFoods
+                .Where(w => w.Food == foodName)
+                .ToListAsync();
+                
+            _context.WeeklyFoods.RemoveRange(weeklyFoods);
+            await _context.SaveChangesAsync();
+        }
     }
 }

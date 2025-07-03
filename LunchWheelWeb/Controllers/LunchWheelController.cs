@@ -133,5 +133,18 @@ namespace LunchWheelWeb.Controllers
             await _weeklyFoodService.ClearWeeklyFoodsAsync();
             return Ok();
         }
+        
+        // 删除特定的周食物
+        [HttpDelete("weeklyFoods/{foodName}")]
+        public async Task<ActionResult> DeleteWeeklyFood(string foodName)
+        {
+            if (string.IsNullOrWhiteSpace(foodName))
+            {
+                return BadRequest(new { success = false, message = "食物名称不能为空" });
+            }
+            
+            await _weeklyFoodService.DeleteWeeklyFoodByNameAsync(foodName);
+            return Ok(new { success = true, message = $"已成功删除 {foodName}" });
+        }
     }
 }

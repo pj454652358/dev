@@ -378,6 +378,27 @@ class ServerApi {
             return false;
         }
     }
+    
+    // 删除特定的周食物
+    static async deleteWeeklyFood(foodName) {
+        try {
+            const encodedFoodName = encodeURIComponent(foodName);
+            const response = await fetch(`/api/LunchWheel/weeklyFoods/${encodedFoodName}`, {
+                method: 'DELETE'
+            });
+            if (!response.ok) throw new Error('删除周食物失败');
+            
+            const result = await response.json();
+            if (result.success) {
+                ServerApi.showMessage('success', result.message);
+            }
+            return result.success;
+        } catch (error) {
+            console.error('删除周食物错误:', error);
+            ServerApi.showMessage('error', '删除周食物失败');
+            return false;
+        }
+    }
 }
 
 // UI 管理类
@@ -665,7 +686,8 @@ class UIManager {
             weeklyFoodItem.className = 'weekly-food-item';
             
             // 设置随机颜色背景（使用转盘中的颜色数组）
-            weeklyFoodItem.style.backgroundColor = colors[index % colors.length];
+            const bgColor = colors[index % colors.length];
+            weeklyFoodItem.style.backgroundColor = bgColor;
             
             // 格式化最近日期 (使用更简洁的格式)
             const latestDate = new Date(Math.max(...group.dates.map(d => d.getTime())));
@@ -680,9 +702,21 @@ class UIManager {
                 : `${month}/${day}`;
             
             weeklyFoodItem.innerHTML = `
-                ${group.food}
-                <span class="weekly-food-date">${dateDisplay}</span>
+                <div class="weekly-food-content">
+                    <span class="weekly-food-name">${group.food}</span>
+                    <span class="weekly-food-date">${dateDisplay}</span>
+                </div>
+                <button class="weekly-food-delete" title="删除此食物记录">
+                    <i class="fas fa-times"></i>
+                </button>
             `;
+            
+            // 添加删除事件
+            const deleteBtn = weeklyFoodItem.querySelector('.weekly-food-delete');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // 防止事件冒泡
+                this.deleteWeeklyFood(group.food);
+            });
             
             weeklyFoodsContainer.appendChild(weeklyFoodItem);
         });
@@ -707,6 +741,19 @@ class UIManager {
             if (success) {
                 this.weeklyFoods = [];
                 weeklyFoods = []; // 更新全局变量
+                this.renderWeeklyFoods();
+            }
+        }
+    }
+    
+    // 删除特定的周食物
+    async deleteWeeklyFood(foodName) {
+        if (confirm(`确定要删除"${foodName}"这个食物的所有记录吗？`)) {
+            const success = await ServerApi.deleteWeeklyFood(foodName);
+            if (success) {
+                // 从本地列表中删除
+                this.weeklyFoods = this.weeklyFoods.filter(item => item.food !== foodName);
+                weeklyFoods = this.weeklyFoods; // 更新全局变量
                 this.renderWeeklyFoods();
             }
         }
