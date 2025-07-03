@@ -156,12 +156,18 @@ class FoodWheel {
             // 从可选食物中过滤掉最近一周已选择的食物
             const filteredFoods = this.foods.filter(food => !recentFoods.includes(food));
             
-            // 如果过滤后还有食物可选，则使用过滤后的列表；否则使用所有食物
+            // 如果过滤后还有食物可选，则使用过滤后的列表
             if (filteredFoods.length > 0) {
                 availableFoods = filteredFoods;
-            } else if (this.foods.length > 1) {
-                // 如果所有食物都在一周内选过了，但有多个选项，至少避免选到上次的食物
-                availableFoods = this.foods.filter(food => food !== this.foods[this.lastIdx]);
+            } else {
+                // 如果所有食物都在一周内选过了
+                console.log("本周所有食物都已选择过");
+                
+                if (this.foods.length > 1) {
+                    // 有多个选项，至少避免选到上次的食物
+                    availableFoods = this.foods.filter(food => food !== this.foods[this.lastIdx]);
+                }
+                // 如果只有一个选项或过滤后没有选项，则使用所有食物（已在上面的代码中设置）
             }
         }
         
@@ -636,6 +642,20 @@ class UIManager {
         return this.weeklyFoods;
     }
     
+    // 检查是否所有食物都已在一周内选择过
+    areAllFoodsSelectedThisWeek() {
+        // 如果没有食物或没有周食物记录，返回false
+        if (this.foods.length === 0 || this.weeklyFoods.length === 0) {
+            return false;
+        }
+        
+        // 获取所有一周内选择过的食物名称
+        const selectedFoods = this.weeklyFoods.map(item => item.food);
+        
+        // 检查所有当前食物是否都已被选择
+        return this.foods.every(food => selectedFoods.includes(food));
+    }
+    
     // 渲染历史记录
     renderHistory() {
         this.historyList.innerHTML = '';
@@ -658,11 +678,28 @@ class UIManager {
     // 渲染一周内已选食物
     renderWeeklyFoods() {
         const weeklyFoodsContainer = document.getElementById('weekly-foods-container');
+        const weeklyFoodsHeader = document.querySelector('.weekly-foods h4');
         const weeklyFoods = this.weeklyFoods;
+        
+        // 移除可能存在的提示标记
+        const existingBadge = document.querySelector('.all-selected-badge');
+        if (existingBadge) {
+            existingBadge.remove();
+        }
         
         if (!weeklyFoods || weeklyFoods.length === 0) {
             weeklyFoodsContainer.innerHTML = '<p>本周还没有选择过食物</p>';
             return;
+        }
+        
+        // 检查是否所有食物都已选择过
+        const allSelected = this.areAllFoodsSelectedThisWeek();
+        if (allSelected && weeklyFoodsHeader) {
+            // 创建一个徽章提示
+            const badge = document.createElement('span');
+            badge.className = 'all-selected-badge';
+            badge.textContent = '全部选择过';
+            weeklyFoodsHeader.appendChild(badge);
         }
         
         weeklyFoodsContainer.innerHTML = '';
@@ -865,6 +902,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (foods.length === 0) {
             alert('请先添加食物选项');
             return;
+        }
+        
+        // 检查是否所有食物都已在一周内选择过
+        if (ui.areAllFoodsSelectedThisWeek()) {
+            // 显示警告，但仍允许用户选择
+            if (!confirm('本周所有食物都已经选择过了，是否仍要继续？')) {
+                return;
+            }
         }
         
         // 获取一周内已选择的食物
