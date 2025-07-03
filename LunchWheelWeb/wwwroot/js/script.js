@@ -119,7 +119,7 @@ class FoodWheel {
     }
     
     // 旋转动画
-    spin(callback, weeklyFoods = []) {
+    async spin(callback) {
         if (this.spinning) return;
         if (this.foods.length === 0) {
             alert('请先添加食物选项');
@@ -127,6 +127,10 @@ class FoodWheel {
         }
         
         this.spinning = true;
+        
+        // 声明变量，确保它们在整个方法范围内可用
+        let targetFood;
+        let targetIdx;
         
         // 尝试播放音效文件，如果失败则使用生成的音效
         try {
@@ -143,41 +147,42 @@ class FoodWheel {
             soundGenerator.generateSpinSound();
         }
         
-        // 确保不会连续选择同一个结果，且避开一周内已选择的食物
-        let targetIdx;
-        let targetFood;
-        let availableFoods = [...this.foods];
+        // 使用后端API获取随机食物
+        // 如果有上次选择的食物，传递给API避免连续选择
+        const lastSelectedFood = this.lastIdx !== null ? this.foods[this.lastIdx] : null;
         
-        // 从可选食物中排除一周内已选食物
-        if (weeklyFoods.length > 0) {
-            // 提取过去一周内已选择的食物名称
-            const recentFoods = weeklyFoods.map(item => item.food);
+        try {
+            // 获取后端返回的随机食物
+            const result = await ServerApi.spinWheel(lastSelectedFood);
             
-            // 从可选食物中过滤掉最近一周已选择的食物
-            const filteredFoods = this.foods.filter(food => !recentFoods.includes(food));
-            
-            // 如果过滤后还有食物可选，则使用过滤后的列表
-            if (filteredFoods.length > 0) {
-                availableFoods = filteredFoods;
-            } else {
-                // 如果所有食物都在一周内选过了
-                console.log("本周所有食物都已选择过");
-                
-                if (this.foods.length > 1) {
-                    // 有多个选项，至少避免选到上次的食物
-                    availableFoods = this.foods.filter(food => food !== this.foods[this.lastIdx]);
-                }
-                // 如果只有一个选项或过滤后没有选项，则使用所有食物（已在上面的代码中设置）
+            if (!result) {
+                this.spinning = false;
+                return;
             }
+            
+            // 如果所有食物都已选择过，可以显示提示
+            if (result.isRepeat && result.message) {
+                console.log(result.message);
+            }
+            
+            // 获取目标食物及其索引
+            targetFood = result.food;
+            targetIdx = this.foods.indexOf(targetFood);
+            
+            // 如果食物不在列表中（不太可能发生，除非前后端不同步）
+            if (targetIdx === -1) {
+                console.error('返回的食物不在列表中:', targetFood);
+                this.spinning = false;
+                return;
+            }
+            
+            // 更新最后选择的索引
+            this.lastIdx = targetIdx;
+        } catch (error) {
+            console.error('获取随机食物失败:', error);
+            this.spinning = false;
+            return;
         }
-        
-        // 从可用食物中随机选择一个
-        const randomIndex = Math.floor(Math.random() * availableFoods.length);
-        targetFood = availableFoods[randomIndex];
-        
-        // 找到这个食物在原始食物列表中的索引
-        targetIdx = this.foods.indexOf(targetFood);
-        this.lastIdx = targetIdx;
         
         // 计算指向目标食物中心的角度
         const sectorAngle = 360 / this.foods.length;
@@ -403,6 +408,24 @@ class ServerApi {
             console.error('删除周食物错误:', error);
             ServerApi.showMessage('error', '删除周食物失败');
             return false;
+        }
+    }
+    
+    // 随机选择食物
+    static async spinWheel(lastSelected = null) {
+        try {
+            let url = '/api/LunchWheel/spin';
+            if (lastSelected) {
+                url += `?lastSelected=${encodeURIComponent(lastSelected)}`;
+            }
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('转盘操作失败');
+            return await response.json();
+        } catch (error) {
+            console.error('转盘操作错误:', error);
+            ServerApi.showMessage('error', '转盘操作失败');
+            return null;
         }
     }
 }
@@ -904,22 +927,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
-        // 检查是否所有食物都已在一周内选择过
-        if (ui.areAllFoodsSelectedThisWeek()) {
-            // 显示警告，但仍允许用户选择
-            if (!confirm('本周所有食物都已经选择过了，是否仍要继续？')) {
-                return;
-            }
-        }
-        
-        // 获取一周内已选择的食物
-        const weeklyFoods = ui.getWeeklyFoods();
+        // 检查是否所有食物都已在一周内选择过的逻辑已移至后端
+        // 后端会返回是否所有食物都已选择过的标志
         
         resultDiv.textContent = '';
-        foodWheel.spin(async (result) => {
+        foodWheel.spin((result) => {
             resultDiv.textContent = `选中：${result}`;
-            await ui.addHistory(result);
-        }, weeklyFoods);
+            // 历史记录已由后端API添加，不需要再次添加
+            // 只需刷新UI
+            ui.reloadData();
+        });
     });
     
     // 初始调整尺寸

@@ -146,5 +146,36 @@ namespace LunchWheelWeb.Controllers
             await _weeklyFoodService.DeleteWeeklyFoodByNameAsync(foodName);
             return Ok(new { success = true, message = $"已成功删除 {foodName}" });
         }
+
+        // 随机选择食物
+        [HttpGet("spin")]
+        public async Task<ActionResult<object>> SpinWheel([FromQuery] string? lastSelected = null)
+        {
+            try
+            {
+                // 随机选择食物
+                var (food, isRepeat) = await _foodService.GetRandomFoodAsync(lastSelected);
+                
+                // 添加到历史记录
+                await _historyService.AddHistoryAsync(new History { 
+                    Food = food, 
+                    Time = DateTime.UtcNow 
+                });
+                
+                // 返回结果
+                return Ok(new { 
+                    food,
+                    isRepeat,
+                    message = isRepeat ? "本周所有食物都已经选择过了" : null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    success = false, 
+                    message = $"转盘操作失败: {ex.Message}" 
+                });
+            }
+        }
     }
 }
