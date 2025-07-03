@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LunchWheelWeb")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9532dac9e9764cb6d485195d064ca94dba0e4c83")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8be5f45572a84a02c136f035cf027383f1404d89")]
 [assembly: System.Reflection.AssemblyProductAttribute("LunchWheelWeb")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LunchWheelWeb")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

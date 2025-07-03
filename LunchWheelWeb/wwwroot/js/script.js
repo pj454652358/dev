@@ -587,7 +587,7 @@ class UIManager {
     async resetToDefault() {
         // 重置食物列表
         try {
-            const defaultFoods = await ServerApi.resetToDefaultFoods();
+            const defaultFoods = await ServerApi.resetToDefaults();
             
             if (defaultFoods) {
                 this.foods = defaultFoods;
