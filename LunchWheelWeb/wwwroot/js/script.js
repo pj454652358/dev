@@ -541,11 +541,25 @@ class UIManager {
             item.innerHTML = `
                 <div class="food-name">${food}</div>
                 <div class="food-actions">
-                    <button class="delete-btn" title="删除"><i class="fas fa-trash-alt"></i></button>
+                    <button class="delete-btn" title="删除这个选项">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </div>
             `;
             
-            item.querySelector('.delete-btn').addEventListener('click', () => this.removeFood(index));
+            const deleteBtn = item.querySelector('.delete-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                // 添加一个简单的删除动画
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(20px)';
+                item.style.transition = 'all 0.3s ease';
+                
+                // 动画结束后再删除
+                setTimeout(() => {
+                    this.removeFood(index);
+                }, 300);
+            });
             this.foodsContainer.appendChild(item);
         });
     }

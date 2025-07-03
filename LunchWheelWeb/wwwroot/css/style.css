@@ -134,8 +134,15 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 10px;
+    padding: 10px 15px;
     border-bottom: 1px solid #f1f1f1;
+    transition: all 0.3s ease;
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.food-item:hover {
+    background-color: #f9f9f9;
 }
 
 .food-item:last-child {
@@ -145,6 +152,8 @@ h1 {
 .food-name {
     flex: 1;
     text-align: left;
+    font-size: 16px;
+    padding: 5px 0;
 }
 
 .food-actions button {
@@ -154,11 +163,27 @@ h1 {
     color: #999;
     font-size: 14px;
     padding: 4px 8px;
-    transition: color 0.2s;
+    transition: all 0.2s ease;
+}
+
+.food-actions .delete-btn {
+    background-color: #f8f8f8;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e74c3c;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border: 1px solid #eee;
 }
 
 .food-actions .delete-btn:hover {
-    color: #e74c3c;
+    background-color: #e74c3c;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
 }
 
 .add-food {
