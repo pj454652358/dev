@@ -48,6 +48,23 @@ namespace LunchWheelWeb.Services
                     await _context.SaveChangesAsync();
                     _logger.LogInformation("已添加默认食物数据");
                 }
+                
+                // 检查是否已有设置数据
+                if (!await _context.Settings.AnyAsync())
+                {
+                    // 添加默认设置
+                    var defaultSettings = new Settings
+                    {
+                        Title = "午餐吃什么？",
+                        ItemName = "食物",
+                        Theme = "food",
+                        UpdatedAt = DateTime.UtcNow
+                    };
+
+                    await _context.Settings.AddAsync(defaultSettings);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("已添加默认设置数据");
+                }
             }
             catch (Exception ex)
             {

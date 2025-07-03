@@ -8,16 +8,16 @@ namespace LunchWheelWeb.Controllers
     {
         private readonly FoodService _foodService;
         private readonly HistoryService _historyService;
-        private readonly WeeklyFoodService _weeklyFoodService;
+        private readonly SettingsService _settingsService;
 
         public HomeController(
             FoodService foodService, 
             HistoryService historyService, 
-            WeeklyFoodService weeklyFoodService)
+            SettingsService settingsService)
         {
             _foodService = foodService;
             _historyService = historyService;
-            _weeklyFoodService = weeklyFoodService;
+            _settingsService = settingsService;
         }
 
         public async Task<IActionResult> Index()
@@ -33,12 +33,9 @@ namespace LunchWheelWeb.Controllers
                 Saved = true 
             }).ToList();
             
-            var weeklyFoods = await _weeklyFoodService.GetWeeklyFoodsAsync();
-            ViewBag.WeeklyFoods = weeklyFoods.Select(w => new 
-            { 
-                Food = w.Food, 
-                Date = w.Date 
-            }).ToList();
+            // 获取设置
+            var settings = await _settingsService.GetSettingsAsync();
+            ViewBag.Settings = settings;
             
             return View();
         }
@@ -101,13 +98,7 @@ namespace LunchWheelWeb.Controllers
             return RedirectToAction("Index");
         }
         
-        // 清空周食物
-        [HttpPost]
-        public async Task<IActionResult> ClearWeeklyFoods()
-        {
-            await _weeklyFoodService.ClearWeeklyFoodsAsync();
-            return RedirectToAction("Index");
-        }
+        // 清空周食物方法已移除
         
         // AJAX接口，用于前端JS调用
         
@@ -131,15 +122,6 @@ namespace LunchWheelWeb.Controllers
             }).ToList());
         }
         
-        // 获取周食物
-        [HttpGet]
-        public async Task<JsonResult> GetWeeklyFoods()
-        {
-            var weeklyFoods = await _weeklyFoodService.GetWeeklyFoodsAsync();
-            return Json(weeklyFoods.Select(w => new { 
-                food = w.Food, 
-                date = w.Date 
-            }).ToList());
-        }
+        // 获取周食物方法已移除
     }
 }

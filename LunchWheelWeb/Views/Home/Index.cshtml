@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>午餐转盘</title>
+    <title>决策转盘</title>
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/assets/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1>午餐吃什么？</h1>
+        <h1 id="wheel-title">加载中...</h1>
         <div class="tabs">
             <button class="tab-btn active" data-tab="wheel">转盘</button>
             <button class="tab-btn" data-tab="settings">设置</button>
@@ -26,18 +26,30 @@
         </div>
         
         <div class="tab-content" id="settings-tab">
-            <h3>自定义食物选项</h3>
+            <div class="settings-section collapsed">
+                <div class="settings-section-header">
+                    <h3>转盘设置</h3>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="settings-section-content">
+                    <div class="form-group">
+                        <label for="wheel-name">转盘标题:</label>
+                        <input type="text" id="wheel-name" placeholder="例如：午餐吃什么？">
+                    </div>
+                    <div class="form-group">
+                        <label for="item-name">选项名称:</label>
+                        <input type="text" id="item-name" placeholder="例如：食物、地点、活动...">
+                    </div>
+                </div>
+            </div>
+            
+            <h3 id="custom-options-title">自定义选项</h3>
             <div class="food-list">
                 <div id="foods-container"></div>
                 <div class="add-food">
-                    <input type="text" id="new-food" placeholder="添加新食物...">
+                    <input type="text" id="new-food" placeholder="添加新选项...">
                     <button id="add-btn">添加</button>
                 </div>
-            </div>
-            <div class="weekly-foods">
-                <h4>一周内已选食物</h4>
-                <div id="weekly-foods-container">加载中...</div>
-                <button id="clear-weekly-foods">清空一周内已选食物</button>
             </div>
             <div class="settings-actions">
                 <button id="reset-default">恢复默认</button>
@@ -59,7 +71,7 @@
         // 初始化数据（从服务器获取）
         const initialFoods = @Html.Raw(Json.Serialize(ViewBag.Foods));
         const initialHistory = @Html.Raw(Json.Serialize(ViewBag.History));
-        const initialWeeklyFoods = @Html.Raw(Json.Serialize(ViewBag.WeeklyFoods));
+        const initialSettings = @Html.Raw(Json.Serialize(ViewBag.Settings));
     </script>
     <script src="~/js/script.js"></script>
 </body>

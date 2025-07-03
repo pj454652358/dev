@@ -112,8 +112,8 @@ namespace LunchWheelWeb.Services
             }
         }
 
-        // 随机选择食物，避开一周内已选择的食物
-        public async Task<(string food, bool isRepeat)> GetRandomFoodAsync(string? lastSelectedFood = null, string? userId = null)
+        // 随机选择食物
+        public async Task<string> GetRandomFoodAsync(string? userId = null)
         {
             // 获取所有食物
             var allFoods = await GetAllFoodsAsync(userId);
@@ -122,51 +122,10 @@ namespace LunchWheelWeb.Services
                 throw new InvalidOperationException("没有可用的食物选项");
             }
             
-            // 获取一周内已选择的食物
-            var oneWeekAgo = DateTime.Now.AddDays(-7);
-            var weeklyFoods = await _context.WeeklyFoods
-                .Where(w => w.Date >= oneWeekAgo && (string.IsNullOrEmpty(userId) || w.UserId == userId))
-                .ToListAsync();
-                
-            var recentFoodNames = weeklyFoods.Select(w => w.Food).ToHashSet();
-            
-            // 过滤出一周内未选择的食物
-            var availableFoods = allFoods
-                .Where(f => !recentFoodNames.Contains(f.Name))
-                .ToList();
-                
-            // 如果没有未选择的食物，则使用所有食物，但避开上次选择的食物
-            bool isRepeat = false;
-            if (availableFoods.Count == 0)
-            {
-                isRepeat = true;
-                availableFoods = allFoods;
-                
-                // 如果只有一种食物，没有选择的余地，直接返回
-                if (availableFoods.Count == 1)
-                {
-                    return (availableFoods[0].Name, isRepeat);
-                }
-                
-                // 如果有多种食物，避开上次选择的
-                if (!string.IsNullOrEmpty(lastSelectedFood))
-                {
-                    availableFoods = availableFoods
-                        .Where(f => f.Name != lastSelectedFood)
-                        .ToList();
-                        
-                    // 如果过滤后没有食物（理论上不会发生），回退使用所有食物
-                    if (availableFoods.Count == 0)
-                    {
-                        availableFoods = allFoods;
-                    }
-                }
-            }
-            
             // 随机选择一个食物
             var random = new Random();
-            var randomIndex = random.Next(availableFoods.Count);
-            return (availableFoods[randomIndex].Name, isRepeat);
+            var randomIndex = random.Next(allFoods.Count);
+            return allFoods[randomIndex].Name;
         }
     }
 }

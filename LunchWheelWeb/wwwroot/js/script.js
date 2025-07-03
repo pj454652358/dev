@@ -19,7 +19,11 @@ let spinning = false;
 let wheelRadius;
 let lastResult = null;
 let history = initialHistory || [];
-let weeklyFoods = initialWeeklyFoods || [];
+let settings = initialSettings || {
+    title: "午餐吃什么？",
+    itemName: "食物",
+    theme: "food"
+};
 
 // 食物转盘类
 class FoodWheel {
@@ -364,52 +368,7 @@ class ServerApi {
         }
     }
     
-    // 获取周食物
-    static async getWeeklyFoods() {
-        try {
-            const response = await fetch('/api/LunchWheel/weeklyFoods');
-            if (!response.ok) throw new Error('获取周食物失败');
-            return await response.json();
-        } catch (error) {
-            console.error('获取周食物错误:', error);
-            return null;
-        }
-    }
-    
-    // 清空周食物
-    static async clearWeeklyFoods() {
-        try {
-            const response = await fetch('/api/LunchWheel/weeklyFoods', {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('清空周食物失败');
-            return true;
-        } catch (error) {
-            console.error('清空周食物错误:', error);
-            return false;
-        }
-    }
-    
-    // 删除特定的周食物
-    static async deleteWeeklyFood(foodName) {
-        try {
-            const encodedFoodName = encodeURIComponent(foodName);
-            const response = await fetch(`/api/LunchWheel/weeklyFoods/${encodedFoodName}`, {
-                method: 'DELETE'
-            });
-            if (!response.ok) throw new Error('删除周食物失败');
-            
-            const result = await response.json();
-            if (result.success) {
-                ServerApi.showMessage('success', result.message);
-            }
-            return result.success;
-        } catch (error) {
-            console.error('删除周食物错误:', error);
-            ServerApi.showMessage('error', '删除周食物失败');
-            return false;
-        }
-    }
+    // 周食物相关方法已移除
     
     // 随机选择食物
     static async spinWheel(lastSelected = null) {
@@ -428,6 +387,59 @@ class ServerApi {
             return null;
         }
     }
+    
+    // 获取设置
+    static async getSettings() {
+        try {
+            const response = await fetch('/api/LunchWheel/settings');
+            if (!response.ok) throw new Error('获取设置失败');
+            return await response.json();
+        } catch (error) {
+            console.error('获取设置错误:', error);
+            ServerApi.showMessage('error', '获取设置失败');
+            return null;
+        }
+    }
+    
+    // 更新设置
+    static async updateSettings(settings) {
+        try {
+            const response = await fetch('/api/LunchWheel/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+            
+            if (!response.ok) throw new Error('更新设置失败');
+            
+            const result = await response.json();
+            ServerApi.showMessage('success', '设置已更新');
+            return result;
+        } catch (error) {
+            console.error('更新设置错误:', error);
+            ServerApi.showMessage('error', '更新设置失败');
+            return null;
+        }
+    }
+    
+    // 重置设置
+    static async resetSettings() {
+        try {
+            const response = await fetch('/api/LunchWheel/settings/reset', {
+                method: 'POST'
+            });
+            
+            if (!response.ok) throw new Error('重置设置失败');
+            
+            const result = await response.json();
+            ServerApi.showMessage('success', '设置已重置为默认');
+            return result;
+        } catch (error) {
+            console.error('重置设置错误:', error);
+            ServerApi.showMessage('error', '重置设置失败');
+            return null;
+        }
+    }
 }
 
 // UI 管理类
@@ -436,7 +448,7 @@ class UIManager {
         this.foodWheel = foodWheel;
         this.foods = [];
         this.history = [];
-        this.weeklyFoods = [];
+        this.settings = settings; // 使用全局设置
         
         // DOM 元素
         this.tabButtons = document.querySelectorAll('.tab-btn');
@@ -448,6 +460,15 @@ class UIManager {
         this.saveSettingsBtn = document.getElementById('save-settings');
         this.historyList = document.getElementById('history-list');
         this.clearHistoryBtn = document.getElementById('clear-history');
+        this.wheelTitle = document.getElementById('wheel-title');
+        this.wheelNameInput = document.getElementById('wheel-name');
+        this.itemNameInput = document.getElementById('item-name');
+        this.customOptionsTitle = document.getElementById('custom-options-title');
+        this.itemTypeTexts = document.querySelectorAll('[id^="item-type-text"]');
+        this.settingsSection = document.querySelector('.settings-section');
+        this.settingsSectionHeader = document.querySelector('.settings-section-header');
+
+        console.log('初始化设置:', this.settings);
         
         // 初始化
         this.init();
@@ -458,20 +479,19 @@ class UIManager {
         // 加载数据
         this.foods = foods;
         this.history = history;
-        this.weeklyFoods = weeklyFoods;
         
         // 更新 UI
         this.updateFoodWheel();
         this.renderFoodList();
         this.renderHistory();
-        this.renderWeeklyFoods();
+        this.applySettings();
         
-        // 设置事件监听
-        this.setupEventListeners();
+        // 绑定事件
+        this.bindEvents();
     }
     
-    // 设置事件监听器
-    setupEventListeners() {
+    // 绑定事件
+    bindEvents() {
         // 标签切换
         this.tabButtons.forEach(btn => {
             btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
@@ -488,10 +508,16 @@ class UIManager {
         // 清空历史
         this.clearHistoryBtn.addEventListener('click', () => this.clearHistory());
         
-        // 清空一周内已选食物
-        const clearWeeklyFoodsBtn = document.getElementById('clear-weekly-foods');
-        if (clearWeeklyFoodsBtn) {
-            clearWeeklyFoodsBtn.addEventListener('click', () => this.clearWeeklyFoods());
+        // 设置相关
+        this.wheelNameInput.addEventListener('input', () => this.updateWheelTitle());
+        this.itemNameInput.addEventListener('input', () => this.updateItemName());
+        this.itemTypeTexts.forEach((element) => {
+            element.addEventListener('input', () => this.updateItemType(element));
+        });
+        
+        // 设置区域折叠/展开
+        if (this.settingsSectionHeader) {
+            this.settingsSectionHeader.addEventListener('click', () => this.toggleSettingsSection());
         }
     }
     
@@ -557,28 +583,70 @@ class UIManager {
         }
     }
     
-    // 恢复默认食物列表
+    // 重置为默认
     async resetToDefault() {
-        if (confirm('确定要恢复默认食物列表吗？这将删除所有自定义选项。')) {
-            // 使用API重置为默认食物列表
-            const defaultFoods = await ServerApi.resetToDefaults();
+        // 重置食物列表
+        try {
+            const defaultFoods = await ServerApi.resetToDefaultFoods();
+            
             if (defaultFoods) {
                 this.foods = defaultFoods;
-                foods = defaultFoods; // 更新全局变量
+                this.foodWheel.foods = defaultFoods;
+                this.foodWheel.initializeAngle();
+                this.foodWheel.draw();
                 this.renderFoodList();
-                this.updateFoodWheel();
-                // 已通过API重置，无需再次保存
+                ServerApi.showMessage('success', '已恢复默认食物');
             }
+        } catch (error) {
+            console.error('重置默认食物错误:', error);
+            ServerApi.showMessage('error', '重置默认食物失败');
+        }
+        
+        // 重置设置
+        try {
+            const defaultSettings = await ServerApi.resetSettings();
+            
+            if (defaultSettings) {
+                this.settings = defaultSettings;
+                this.applySettings();
+                ServerApi.showMessage('success', '已恢复默认设置');
+            }
+        } catch (error) {
+            console.error('重置设置错误:', error);
+            ServerApi.showMessage('error', '重置设置失败');
         }
     }
     
     // 保存设置
     async saveSettings() {
-        const success = await ServerApi.saveFoods(this.foods);
-        if (success) {
-            alert('设置已保存！');
+        const settingsData = {
+            title: this.wheelNameInput.value.trim(),
+            itemName: this.itemNameInput.value.trim(),
+            theme: "food" // 默认主题
+        };
+        
+        // 前端简单验证
+        if (!settingsData.title) {
+            return ServerApi.showMessage('error', '标题不能为空');
+        }
+        
+        if (!settingsData.itemName) {
+            return ServerApi.showMessage('error', '项目名称不能为空');
+        }
+        
+        // 更新全局设置变量
+        settings = settingsData;
+        
+        // 应用设置到UI
+        this.settings = settingsData;
+        this.applySettings();
+        
+        // 调用API保存
+        const result = await ServerApi.updateSettings(settingsData);
+        if (result) {
+            ServerApi.showMessage('success', '设置已保存！');
         } else {
-            alert('设置保存失败！');
+            ServerApi.showMessage('error', '设置保存失败！');
         }
     }
     
@@ -642,41 +710,15 @@ class UIManager {
     
     // 重新加载数据
     async reloadData() {
-        // 重新加载历史和周食物
+        // 重新加载历史记录
         const newHistory = await ServerApi.getHistory();
-        const newWeeklyFoods = await ServerApi.getWeeklyFoods();
         
         if (newHistory) {
             this.history = newHistory;
             history = newHistory; // 更新全局变量
         }
         
-        if (newWeeklyFoods) {
-            this.weeklyFoods = newWeeklyFoods;
-            weeklyFoods = newWeeklyFoods; // 更新全局变量
-        }
-        
         this.renderHistory();
-        this.renderWeeklyFoods();
-    }
-    
-    // 获取一周内已选择的食物
-    getWeeklyFoods() {
-        return this.weeklyFoods;
-    }
-    
-    // 检查是否所有食物都已在一周内选择过
-    areAllFoodsSelectedThisWeek() {
-        // 如果没有食物或没有周食物记录，返回false
-        if (this.foods.length === 0 || this.weeklyFoods.length === 0) {
-            return false;
-        }
-        
-        // 获取所有一周内选择过的食物名称
-        const selectedFoods = this.weeklyFoods.map(item => item.food);
-        
-        // 检查所有当前食物是否都已被选择
-        return this.foods.every(food => selectedFoods.includes(food));
     }
     
     // 渲染历史记录
@@ -698,88 +740,75 @@ class UIManager {
         });
     }
     
-    // 渲染一周内已选食物
-    renderWeeklyFoods() {
-        const weeklyFoodsContainer = document.getElementById('weekly-foods-container');
-        const weeklyFoodsHeader = document.querySelector('.weekly-foods h4');
-        const weeklyFoods = this.weeklyFoods;
+    // 应用设置到UI
+    applySettings() {
+        console.log('应用设置到UI', this.settings);
         
-        // 移除可能存在的提示标记
-        const existingBadge = document.querySelector('.all-selected-badge');
-        if (existingBadge) {
-            existingBadge.remove();
+        // 更新页面标题
+        document.title = this.settings.title || "决策转盘";
+        
+        // 更新转盘标题
+        if (this.wheelTitle) {
+            this.wheelTitle.textContent = this.settings.title || "午餐吃什么？";
         }
         
-        if (!weeklyFoods || weeklyFoods.length === 0) {
-            weeklyFoodsContainer.innerHTML = '<p>本周还没有选择过食物</p>';
-            return;
+        // 更新设置表单
+        if (this.wheelNameInput) {
+            this.wheelNameInput.value = this.settings.title || "午餐吃什么？";
         }
         
-        // 检查是否所有食物都已选择过
-        const allSelected = this.areAllFoodsSelectedThisWeek();
-        if (allSelected && weeklyFoodsHeader) {
-            // 创建一个徽章提示
-            const badge = document.createElement('span');
-            badge.className = 'all-selected-badge';
-            badge.textContent = '全部选择过';
-            weeklyFoodsHeader.appendChild(badge);
+        if (this.itemNameInput) {
+            this.itemNameInput.value = this.settings.itemName || "食物";
         }
         
-        weeklyFoodsContainer.innerHTML = '';
+        // 更新自定义选项标题
+        if (this.customOptionsTitle) {
+            this.customOptionsTitle.textContent = `自定义${this.settings.itemName || "选项"}`;
+        }
         
-        // 对食物进行分组，避免显示重复项
-        const foodGroups = {};
-        weeklyFoods.forEach(item => {
-            if (!foodGroups[item.food]) {
-                foodGroups[item.food] = {
-                    food: item.food,
-                    dates: [new Date(item.date)]
-                };
-            } else {
-                foodGroups[item.food].dates.push(new Date(item.date));
-            }
-        });
-        
-        // 为每个食物创建标签
-        Object.values(foodGroups).forEach((group, index) => {
-            const weeklyFoodItem = document.createElement('div');
-            weeklyFoodItem.className = 'weekly-food-item';
-            
-            // 设置随机颜色背景（使用转盘中的颜色数组）
-            const bgColor = colors[index % colors.length];
-            weeklyFoodItem.style.backgroundColor = bgColor;
-            
-            // 格式化最近日期 (使用更简洁的格式)
-            const latestDate = new Date(Math.max(...group.dates.map(d => d.getTime())));
-            
-            // 获取月日
-            const month = latestDate.getMonth() + 1;
-            const day = latestDate.getDate();
-            
-            // 如果有多个日期，显示次数而不是具体日期
-            const dateDisplay = group.dates.length > 1 
-                ? `${month}/${day} (+${group.dates.length - 1})` 
-                : `${month}/${day}`;
-            
-            weeklyFoodItem.innerHTML = `
-                <div class="weekly-food-content">
-                    <span class="weekly-food-name">${group.food}</span>
-                    <span class="weekly-food-date">${dateDisplay}</span>
-                </div>
-                <button class="weekly-food-delete" title="删除此食物记录">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            
-            // 添加删除事件
-            const deleteBtn = weeklyFoodItem.querySelector('.weekly-food-delete');
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // 防止事件冒泡
-                this.deleteWeeklyFood(group.food);
+        // 更新选项名称显示
+        if (this.itemTypeTexts) {
+            this.itemTypeTexts.forEach(element => {
+                element.textContent = this.settings.itemName || "选项";
             });
-            
-            weeklyFoodsContainer.appendChild(weeklyFoodItem);
+        }
+        
+        // 更新输入框提示
+        if (this.newFoodInput) {
+            this.newFoodInput.placeholder = `添加新${this.settings.itemName || "选项"}...`;
+        }
+    }
+    
+    // 更新转盘标题
+    updateWheelTitle() {
+        const title = this.wheelNameInput.value.trim();
+        this.settings.title = title;
+        this.wheelTitle.textContent = title || "决策转盘";
+        document.title = title || "决策转盘";
+    }
+    
+    // 更新选项名称
+    updateItemName() {
+        const itemName = this.itemNameInput.value.trim();
+        this.settings.itemName = itemName;
+        
+        // 更新相关文本
+        this.customOptionsTitle.textContent = `自定义${itemName || "选项"}`;
+        this.itemTypeTexts.forEach(element => {
+            element.textContent = itemName || "选项";
         });
+        
+        // 更新输入框提示
+        this.newFoodInput.placeholder = `添加新${itemName || "选项"}...`;
+    }
+    
+    // 更新项目类型
+    updateItemType(input) {
+        const typeIndex = Array.from(this.itemTypeTexts).indexOf(input);
+        if (typeIndex === -1) return;
+        
+        // 更新对应的设置项
+        settings[`itemType${typeIndex + 1}`] = input.value.trim();
     }
     
     // 清空历史
@@ -794,28 +823,10 @@ class UIManager {
         }
     }
     
-    // 清空一周内已选食物
-    async clearWeeklyFoods() {
-        if (confirm('确定要清空一周内已选食物记录吗？')) {
-            const success = await ServerApi.clearWeeklyFoods();
-            if (success) {
-                this.weeklyFoods = [];
-                weeklyFoods = []; // 更新全局变量
-                this.renderWeeklyFoods();
-            }
-        }
-    }
-    
-    // 删除特定的周食物
-    async deleteWeeklyFood(foodName) {
-        if (confirm(`确定要删除"${foodName}"这个食物的所有记录吗？`)) {
-            const success = await ServerApi.deleteWeeklyFood(foodName);
-            if (success) {
-                // 从本地列表中删除
-                this.weeklyFoods = this.weeklyFoods.filter(item => item.food !== foodName);
-                weeklyFoods = this.weeklyFoods; // 更新全局变量
-                this.renderWeeklyFoods();
-            }
+    // 切换设置区域的折叠/展开状态
+    toggleSettingsSection() {
+        if (this.settingsSection) {
+            this.settingsSection.classList.toggle('collapsed');
         }
     }
 }
@@ -908,7 +919,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 显示初始指向的食物
     if (foods.length > 0) {
         const initialFood = getCurrentSelectedFood(foodWheel);
-        resultDiv.textContent = `指针指向：${initialFood}`;
+        const itemName = settings?.itemName || "选项";
+        resultDiv.textContent = `指针指向${itemName}：${initialFood}`;
     }
     
     // 获取当前指针指向的食物
@@ -923,7 +935,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 绑定旋转按钮
     spinBtn.addEventListener('click', () => {
         if (foods.length === 0) {
-            alert('请先添加食物选项');
+            const itemName = settings?.itemName || "选项";
+            alert(`请先添加${itemName}`);
             return;
         }
         
@@ -932,7 +945,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         resultDiv.textContent = '';
         foodWheel.spin((result) => {
-            resultDiv.textContent = `选中：${result}`;
+            const itemName = settings?.itemName || "选项";
+            resultDiv.textContent = `选中${itemName}：${result}`;
             // 历史记录已由后端API添加，不需要再次添加
             // 只需刷新UI
             ui.reloadData();

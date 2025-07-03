@@ -12,7 +12,7 @@ namespace LunchWheelWeb.Data
 
         public DbSet<Food> Foods { get; set; }
         public DbSet<History> History { get; set; }
-        public DbSet<WeeklyFood> WeeklyFoods { get; set; }
+        public DbSet<Settings> Settings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

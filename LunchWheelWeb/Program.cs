@@ -17,8 +17,8 @@ builder.Services.AddDbContext<LunchWheelDbContext>(options =>
 // 添加应用服务
 builder.Services.AddScoped<FoodService>();
 builder.Services.AddScoped<HistoryService>();
-builder.Services.AddScoped<WeeklyFoodService>();
 builder.Services.AddScoped<DbInitializerService>();
+builder.Services.AddScoped<SettingsService>();
 
 var app = builder.Build();
 

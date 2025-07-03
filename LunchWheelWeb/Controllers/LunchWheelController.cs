@@ -11,16 +11,16 @@ namespace LunchWheelWeb.Controllers
     {
         private readonly FoodService _foodService;
         private readonly HistoryService _historyService;
-        private readonly WeeklyFoodService _weeklyFoodService;
+        private readonly SettingsService _settingsService;
 
         public LunchWheelController(
             FoodService foodService, 
             HistoryService historyService, 
-            WeeklyFoodService weeklyFoodService)
+            SettingsService settingsService)
         {
             _foodService = foodService;
             _historyService = historyService;
-            _weeklyFoodService = weeklyFoodService;
+            _settingsService = settingsService;
         }
 
         // 获取食物列表
@@ -115,46 +115,16 @@ namespace LunchWheelWeb.Controllers
             return Ok();
         }
 
-        // 获取周食物
-        [HttpGet("weeklyFoods")]
-        public async Task<ActionResult<IEnumerable<object>>> GetWeeklyFoods()
-        {
-            var weeklyFoods = await _weeklyFoodService.GetWeeklyFoodsAsync();
-            return weeklyFoods.Select(w => new {
-                food = w.Food,
-                date = w.Date
-            }).ToList();
-        }
-
-        // 清空周食物
-        [HttpDelete("weeklyFoods")]
-        public async Task<ActionResult> ClearWeeklyFoods()
-        {
-            await _weeklyFoodService.ClearWeeklyFoodsAsync();
-            return Ok();
-        }
-        
-        // 删除特定的周食物
-        [HttpDelete("weeklyFoods/{foodName}")]
-        public async Task<ActionResult> DeleteWeeklyFood(string foodName)
-        {
-            if (string.IsNullOrWhiteSpace(foodName))
-            {
-                return BadRequest(new { success = false, message = "食物名称不能为空" });
-            }
-            
-            await _weeklyFoodService.DeleteWeeklyFoodByNameAsync(foodName);
-            return Ok(new { success = true, message = $"已成功删除 {foodName}" });
-        }
+        // 周食物相关API已移除
 
         // 随机选择食物
         [HttpGet("spin")]
-        public async Task<ActionResult<object>> SpinWheel([FromQuery] string? lastSelected = null)
+        public async Task<ActionResult<object>> SpinWheel()
         {
             try
             {
                 // 随机选择食物
-                var (food, isRepeat) = await _foodService.GetRandomFoodAsync(lastSelected);
+                var food = await _foodService.GetRandomFoodAsync();
                 
                 // 添加到历史记录
                 await _historyService.AddHistoryAsync(new History { 
@@ -165,8 +135,8 @@ namespace LunchWheelWeb.Controllers
                 // 返回结果
                 return Ok(new { 
                     food,
-                    isRepeat,
-                    message = isRepeat ? "本周所有食物都已经选择过了" : null
+                    isRepeat = false,
+                    message = (string?)null
                 });
             }
             catch (Exception ex)
@@ -175,6 +145,56 @@ namespace LunchWheelWeb.Controllers
                     success = false, 
                     message = $"转盘操作失败: {ex.Message}" 
                 });
+            }
+        }
+
+        // 获取设置
+        [HttpGet("settings")]
+        public async Task<ActionResult<Settings>> GetSettings()
+        {
+            try
+            {
+                var settings = await _settingsService.GetSettingsAsync();
+                return Ok(settings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"获取设置失败: {ex.Message}" });
+            }
+        }
+
+        // 更新设置
+        [HttpPost("settings")]
+        public async Task<ActionResult<Settings>> UpdateSettings([FromBody] Settings settings)
+        {
+            try
+            {
+                if (settings == null)
+                {
+                    return BadRequest(new { success = false, message = "无效的设置数据" });
+                }
+                
+                var updatedSettings = await _settingsService.UpdateSettingsAsync(settings);
+                return Ok(updatedSettings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"更新设置失败: {ex.Message}" });
+            }
+        }
+
+        // 重置为默认设置
+        [HttpPost("settings/reset")]
+        public async Task<ActionResult<Settings>> ResetSettings()
+        {
+            try
+            {
+                var settings = await _settingsService.ResetToDefaultAsync();
+                return Ok(settings);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"重置设置失败: {ex.Message}" });
             }
         }
     }

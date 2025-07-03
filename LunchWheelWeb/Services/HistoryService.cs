@@ -7,12 +7,10 @@ namespace LunchWheelWeb.Services
     public class HistoryService
     {
         private readonly LunchWheelDbContext _context;
-        private readonly WeeklyFoodService _weeklyFoodService;
 
-        public HistoryService(LunchWheelDbContext context, WeeklyFoodService weeklyFoodService)
+        public HistoryService(LunchWheelDbContext context)
         {
             _context = context;
-            _weeklyFoodService = weeklyFoodService;
         }
 
         public async Task<List<History>> GetHistoryAsync(string? userId = null)
@@ -27,14 +25,6 @@ namespace LunchWheelWeb.Services
         {
             _context.History.Add(history);
             await _context.SaveChangesAsync();
-
-            // 添加到周食物
-            await _weeklyFoodService.AddWeeklyFoodAsync(new WeeklyFood
-            {
-                Food = history.Food,
-                Date = history.Time,
-                UserId = history.UserId
-            });
         }
 
         public async Task ClearHistoryAsync(string? userId = null)

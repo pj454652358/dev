@@ -396,3 +396,86 @@ h1 {
 .hidden-form {
     display: none;
 }
+
+/* 设置部分样式 */
+.settings-section {
+    margin-bottom: 24px;
+    padding: 15px;
+    border: 1px solid #eaeaea;
+    border-radius: 10px;
+    background: #fafafa;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.settings-section.collapsed {
+    max-height: 45px;
+    padding: 10px 15px;
+}
+
+.settings-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.settings-section-header h3 {
+    margin: 0;
+}
+
+.settings-section-header .toggle-icon {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.settings-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.settings-section-content {
+    transition: opacity 0.3s ease;
+}
+
+.settings-section.collapsed .settings-section-content {
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+    max-width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    border-color: #27ae60;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
+}
+
+/* 选项标题样式 */
+#custom-options-title {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: #333;
+}
