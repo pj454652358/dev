@@ -21,16 +21,48 @@
       "PackagePath": "staticwebassets/assets/sounds/spin.mp3"
     },
     {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/advanced.css",
+      "PackagePath": "staticwebassets/css/advanced.css"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/flat-design.css",
+      "PackagePath": "staticwebassets/css/flat-design.css"
+    },
+    {
       "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/messages.css",
       "PackagePath": "staticwebassets/css/messages.css"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/modal-enhanced.css",
+      "PackagePath": "staticwebassets/css/modal-enhanced.css"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/settings-enhanced.css",
+      "PackagePath": "staticwebassets/css/settings-enhanced.css"
     },
     {
       "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/css/style.css",
       "PackagePath": "staticwebassets/css/style.css"
     },
     {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/flat-ui.js",
+      "PackagePath": "staticwebassets/js/flat-ui.js"
+    },
+    {
       "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/script.js",
       "PackagePath": "staticwebassets/js/script.js"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings-enhanced-clean.js",
+      "PackagePath": "staticwebassets/js/settings-enhanced-clean.js"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings-enhanced.js",
+      "PackagePath": "staticwebassets/js/settings-enhanced.js"
+    },
+    {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings.js",
+      "PackagePath": "staticwebassets/js/settings.js"
     },
     {
       "Id": "obj/Debug/net8.0/staticwebassets/msbuild.LunchWheelWeb.Microsoft.AspNetCore.StaticWebAssets.props",

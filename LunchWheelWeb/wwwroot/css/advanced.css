@@ -1,0 +1,235 @@
+/* 模态框样式 */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 80%;
+    max-width: 500px;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 高级设置样式 */
+.setting-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.setting-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.setting-group input[type="checkbox"] + label {
+    display: inline;
+    margin-left: 5px;
+}
+
+.setting-hint {
+    font-size: 12px;
+    color: #777;
+    margin-top: 5px;
+}
+
+.time-range {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.time-range input {
+    flex: 1;
+}
+
+#food-weight {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.primary-btn {
+    padding: 8px 16px;
+    background: #27ae60;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.secondary-btn {
+    padding: 8px 16px;
+    background: #f1f1f1;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* 分类管理样式 */
+.categories-list {
+    margin-bottom: 15px;
+}
+
+.category-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    border-left: 4px solid #ccc;
+}
+
+.category-item.active {
+    background-color: #e9f7fd;
+    border-left: 4px solid #3498db;
+}
+
+.category-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+}
+
+.category-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.category-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #777;
+    font-size: 14px;
+    padding: 2px;
+}
+
+.category-actions button:hover {
+    color: #e74c3c;
+}
+
+/* 选项项目样式 */
+.food-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.food-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.food-category-tag {
+    background-color: #e9e9e9;
+    color: #555;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.food-settings {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.food-weight-display {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    color: #777;
+    font-size: 13px;
+}
+
+.weight-icon {
+    color: #f39c12;
+}
+
+.favorite-icon {
+    color: #e74c3c;
+}
+
+.settings-icon {
+    color: #3498db;
+    cursor: pointer;
+}
+
+.delete-icon {
+    color: #e74c3c;
+    cursor: pointer;
+}
+
+.add-food {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+.add-food input, .add-food select {
+    flex: 1;
+}
+
+/* 分类筛选器 */
+.category-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+    justify-content: center;
+}
+
+.category-filter select {
+    padding: 5px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}

@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>决策转盘</title>
-    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/flat-design.css">
+    <link rel="stylesheet" href="~/css/messages.css">
     <link rel="stylesheet" href="~/assets/css/all.min.css">
 </head>
 <body>
@@ -26,12 +27,12 @@
         </div>
         
         <div class="tab-content" id="settings-tab">
-            <div class="settings-section collapsed">
-                <div class="settings-section-header">
-                    <h3>转盘设置</h3>
-                    <div class="toggle-icon">▼</div>
-                </div>
-                <div class="settings-section-content">
+            <!-- 转盘设置（增强版） -->
+            <div class="simple-settings-box">
+                <button class="accordion-btn" onclick="toggleSettings('wheel-settings')">
+                    <span><i class="fas fa-cog"></i> 转盘设置</span>
+                </button>
+                <div id="wheel-settings" class="accordion-content" style="display:none;">
                     <div class="form-group">
                         <label for="wheel-name">转盘标题:</label>
                         <input type="text" id="wheel-name" placeholder="例如：午餐吃什么？">
@@ -43,24 +44,128 @@
                 </div>
             </div>
             
-            <h3 id="custom-options-title">自定义选项</h3>
+            <!-- 分类管理（增强版） -->
+            <div class="simple-settings-box">
+                <button class="accordion-btn" onclick="toggleSettings('category-settings')">
+                    <span><i class="fas fa-tags"></i> 分类管理</span>
+                </button>
+                <div id="category-settings" class="accordion-content" style="display:none;">
+                    <div id="categories-list" class="categories-list"></div>
+                    
+                    <div class="add-category">
+                        <input type="text" id="new-category" placeholder="添加新分类..." autocomplete="off">
+                        <button id="add-category-btn"><i class="fas fa-plus"></i> 添加</button>
+                    </div>
+                    <button id="reset-categories" class="secondary-btn"><i class="fas fa-undo"></i> 恢复默认分类</button>
+                </div>
+            </div>
+            
+            <h3 id="custom-options-title"><i class="fas fa-list"></i> 自定义选项</h3>
+            <div class="category-filter">
+                <label><i class="fas fa-filter"></i> 筛选分类:</label>
+                <select id="filter-category">
+                    <option value="">所有分类</option>
+                    <!-- 分类选项将在JS中动态添加 -->
+                </select>
+            </div>
             <div class="food-list">
                 <div id="foods-container"></div>
                 <div class="add-food">
-                    <input type="text" id="new-food" placeholder="添加新选项...">
-                    <button id="add-btn">添加</button>
+                    <input type="text" id="new-food" placeholder="添加新选项..." autocomplete="off">
+                    <select id="new-food-category">
+                        <option value="">无分类</option>
+                        <!-- 分类选项将在JS中动态添加 -->
+                    </select>
+                    <button id="add-btn"><i class="fas fa-plus"></i> 添加</button>
                 </div>
             </div>
             <div class="settings-actions">
-                <button id="reset-default">恢复默认</button>
-                <button id="save-settings">保存设置</button>
+                <button id="reset-default"><i class="fas fa-sync-alt"></i> 恢复默认</button>
+                <button id="save-settings"><i class="fas fa-save"></i> 保存设置</button>
             </div>
         </div>
         
         <div class="tab-content" id="history-tab">
-            <h3>历史记录</h3>
+            <h3><i class="fas fa-history"></i> 历史记录</h3>
             <div id="history-list"></div>
-            <button id="clear-history">清空历史</button>
+            <button id="clear-history"><i class="fas fa-trash-alt"></i> 清空历史</button>
+        </div>
+    </div>
+    
+    <!-- 高级设置模态框 -->
+    <div id="advanced-settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sliders-h"></i> 高级选项设置</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="food-advanced-settings">
+                    <div class="editing-title-container">
+                        <p id="editing-food-name" class="editing-title"></p>
+                    </div>
+                    
+                    <div class="settings-grid">
+                        <div class="setting-group weight-setting">
+                            <label for="food-weight"><i class="fas fa-balance-scale"></i> 选项权重</label>
+                            <div class="weight-control">
+                                <div class="slider-container">
+                                    <input type="range" id="food-weight" min="1" max="10" value="1" oninput="this.nextElementSibling.value = this.value">
+                                    <output>1</output>
+                                </div>
+                                <div class="weight-display">
+                                    <span class="weight-value">权重: <strong>1</strong></span>
+                                </div>
+                            </div>
+                            <p class="setting-hint"><i class="fas fa-info-circle"></i> 权重越高，被选中概率越大</p>
+                        </div>
+                        
+                        <div class="setting-group favorite-setting">
+                            <div class="checkbox-wrapper">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="food-favorite"> 
+                                    <span class="checkmark"></span>
+                                    <span class="checkbox-text"><i class="fas fa-star"></i> 设为喜爱</span>
+                                </label>
+                                <p class="setting-hint">喜爱选项权重自动翻倍</p>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-group category-setting">
+                            <label for="food-category"><i class="fas fa-tag"></i> 所属分类</label>
+                            <select id="food-category" class="flat-select">
+                                <option value="">无分类</option>
+                                <!-- 分类选项将在JS中动态添加 -->
+                            </select>
+                        </div>
+                        
+                        <div class="setting-group time-setting">
+                            <label><i class="fas fa-clock"></i> 可用时间段</label>
+                            <div class="time-range">
+                                <div class="time-input-group">
+                                    <input type="time" id="available-from-time" class="flat-time">
+                                    <span class="time-separator">至</span>
+                                    <input type="time" id="available-to-time" class="flat-time">
+                                </div>
+                            </div>
+                            <p class="setting-hint"><i class="fas fa-info-circle"></i> 留空表示全天可用</p>
+                        </div>
+                        
+                        <div class="setting-group exclusion-setting">
+                            <label for="exclusion-hours"><i class="fas fa-ban"></i> 排除时间</label>
+                            <div class="number-input-group">
+                                <input type="number" id="exclusion-hours" min="0" max="168" value="0" class="flat-number">
+                                <span class="input-suffix">小时</span>
+                            </div>
+                            <p class="setting-hint"><i class="fas fa-info-circle"></i> 被选中后多少小时内不会再被选中</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="save-advanced-settings" class="btn btn-primary"><i class="fas fa-check"></i> 保存设置</button>
+                <button class="close-modal btn btn-secondary"><i class="fas fa-times"></i> 取消</button>
+            </div>
         </div>
     </div>
     
@@ -72,7 +177,10 @@
         const initialFoods = @Html.Raw(Json.Serialize(ViewBag.Foods));
         const initialHistory = @Html.Raw(Json.Serialize(ViewBag.History));
         const initialSettings = @Html.Raw(Json.Serialize(ViewBag.Settings));
+        const initialCategories = @Html.Raw(Json.Serialize(ViewBag.Categories));
     </script>
+    <script src="~/js/settings.js"></script>
+    <script src="~/js/flat-ui.js"></script>
     <script src="~/js/script.js"></script>
 </body>
 </html>

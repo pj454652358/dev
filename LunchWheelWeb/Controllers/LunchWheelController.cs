@@ -12,22 +12,25 @@ namespace LunchWheelWeb.Controllers
         private readonly FoodService _foodService;
         private readonly HistoryService _historyService;
         private readonly SettingsService _settingsService;
+        private readonly CategoryService _categoryService;
 
         public LunchWheelController(
             FoodService foodService, 
             HistoryService historyService, 
-            SettingsService settingsService)
+            SettingsService settingsService,
+            CategoryService categoryService)
         {
             _foodService = foodService;
             _historyService = historyService;
             _settingsService = settingsService;
+            _categoryService = categoryService;
         }
 
         // 获取食物列表
         [HttpGet("foods")]
-        public async Task<ActionResult<IEnumerable<string>>> GetFoods()
+        public async Task<ActionResult<IEnumerable<string>>> GetFoods(int? categoryId = null)
         {
-            var foods = await _foodService.GetAllFoodsAsync();
+            var foods = await _foodService.GetAllFoodsAsync(categoryId: categoryId);
             return foods.Select(f => f.Name).ToList();
         }
 
@@ -119,24 +122,24 @@ namespace LunchWheelWeb.Controllers
 
         // 随机选择食物
         [HttpGet("spin")]
-        public async Task<ActionResult<object>> SpinWheel()
+        public async Task<ActionResult<object>> SpinWheel(string? lastSelected = null, int? categoryId = null)
         {
             try
             {
                 // 随机选择食物
-                var food = await _foodService.GetRandomFoodAsync();
+                var (foodName, isRepeat, message) = await _foodService.GetRandomFoodAsync(categoryId: categoryId, lastSelected: lastSelected);
                 
                 // 添加到历史记录
                 await _historyService.AddHistoryAsync(new History { 
-                    Food = food, 
+                    Food = foodName, 
                     Time = DateTime.UtcNow 
                 });
                 
                 // 返回结果
                 return Ok(new { 
-                    food,
-                    isRepeat = false,
-                    message = (string?)null
+                    food = foodName,
+                    isRepeat,
+                    message
                 });
             }
             catch (Exception ex)
@@ -196,6 +199,197 @@ namespace LunchWheelWeb.Controllers
             {
                 return StatusCode(500, new { success = false, message = $"重置设置失败: {ex.Message}" });
             }
+        }
+
+        // 获取分类列表
+        [HttpGet("categories")]
+        public async Task<ActionResult<IEnumerable<object>>> GetCategories()
+        {
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            return categories.Select(c => new 
+            {
+                id = c.Id,
+                name = c.Name,
+                description = c.Description,
+                color = c.Color,
+                iconName = c.IconName
+            }).ToList();
+        }
+        
+        // 添加新分类
+        [HttpPost("categories")]
+        public async Task<ActionResult<object>> AddCategory([FromBody] Category category)
+        {
+            var (success, message, newCategory) = await _categoryService.AddCategoryAsync(category);
+            
+            if (success && newCategory != null)
+            {
+                return new 
+                { 
+                    success, 
+                    message, 
+                    category = new 
+                    { 
+                        id = newCategory.Id, 
+                        name = newCategory.Name,
+                        description = newCategory.Description,
+                        color = newCategory.Color,
+                        iconName = newCategory.IconName
+                    }
+                };
+            }
+            
+            return new { success, message };
+        }
+        
+        // 删除分类
+        [HttpDelete("categories/{id}")]
+        public async Task<ActionResult<object>> DeleteCategory(int id)
+        {
+            var (success, message) = await _categoryService.DeleteCategoryAsync(id);
+            return new { success, message };
+        }
+        
+        // 重置为默认分类
+        [HttpPost("categories/reset")]
+        public async Task<ActionResult<IEnumerable<object>>> ResetToDefaultCategories()
+        {
+            var categories = await _categoryService.ResetToDefaultsAsync();
+            return categories.Select(c => new 
+            {
+                id = c.Id,
+                name = c.Name,
+                description = c.Description,
+                color = c.Color,
+                iconName = c.IconName
+            }).ToList();
+        }
+
+        // 获取带有详细信息的食物列表(包含分类、权重等)
+        [HttpGet("foods/details")]
+        public async Task<ActionResult<IEnumerable<object>>> GetFoodsDetails(int? categoryId = null)
+        {
+            var foods = await _foodService.GetAllFoodsAsync(categoryId: categoryId);
+            return foods.Select(f => new 
+            {
+                id = f.Id,
+                name = f.Name,
+                categoryId = f.CategoryId,
+                categoryName = f.Category?.Name,
+                weight = f.Weight,
+                isFavorite = f.IsFavorite,
+                availableFromTime = f.AvailableFromTime?.ToString(),
+                availableToTime = f.AvailableToTime?.ToString(),
+                exclusionHours = f.ExclusionHours,
+                isDefault = f.IsDefault,
+                lastSelectedAt = f.LastSelectedAt?.ToString("yyyy-MM-dd HH:mm:ss")
+            }).ToList();
+        }
+
+        // 设置食物权重
+        [HttpPost("foods/{id}/weight")]
+        public async Task<ActionResult<object>> SetFoodWeight(int id, [FromBody] int weight)
+        {
+            if (weight < 1 || weight > 10)
+            {
+                return BadRequest(new { success = false, message = "权重必须在1到10之间" });
+            }
+            
+            var food = await _foodService.GetFoodAsync(id);
+            if (food == null)
+            {
+                return NotFound(new { success = false, message = "未找到该选项" });
+            }
+            
+            food.Weight = weight;
+            await _foodService.UpdateFoodAsync(food);
+            
+            return new { success = true, message = "权重设置成功" };
+        }
+        
+        // 设置食物为喜爱
+        [HttpPost("foods/{id}/favorite")]
+        public async Task<ActionResult<object>> SetFoodFavorite(int id, [FromBody] bool isFavorite)
+        {
+            var food = await _foodService.GetFoodAsync(id);
+            if (food == null)
+            {
+                return NotFound(new { success = false, message = "未找到该选项" });
+            }
+            
+            food.IsFavorite = isFavorite;
+            await _foodService.UpdateFoodAsync(food);
+            
+            return new { success = true, message = isFavorite ? "已设置为喜爱" : "已取消喜爱标记" };
+        }
+        
+        // 设置食物的可用时间
+        [HttpPost("foods/{id}/availableTime")]
+        public async Task<ActionResult<object>> SetFoodAvailableTime(int id, [FromBody] object timeData)
+        {
+            var food = await _foodService.GetFoodAsync(id);
+            if (food == null)
+            {
+                return NotFound(new { success = false, message = "未找到该选项" });
+            }
+            
+            try
+            {
+                // 解析请求体中的时间数据
+                var fromTimeStr = (timeData.GetType().GetProperty("fromTime")?.GetValue(timeData) as string)?.Trim();
+                var toTimeStr = (timeData.GetType().GetProperty("toTime")?.GetValue(timeData) as string)?.Trim();
+                
+                if (string.IsNullOrEmpty(fromTimeStr) && string.IsNullOrEmpty(toTimeStr))
+                {
+                    // 清除时间限制
+                    food.AvailableFromTime = null;
+                    food.AvailableToTime = null;
+                }
+                else
+                {
+                    // 设置时间限制
+                    if (!string.IsNullOrEmpty(fromTimeStr) && !TimeOnly.TryParse(fromTimeStr, out var fromTime))
+                    {
+                        return BadRequest(new { success = false, message = "开始时间格式无效" });
+                    }
+                    
+                    if (!string.IsNullOrEmpty(toTimeStr) && !TimeOnly.TryParse(toTimeStr, out var toTime))
+                    {
+                        return BadRequest(new { success = false, message = "结束时间格式无效" });
+                    }
+                    
+                    food.AvailableFromTime = string.IsNullOrEmpty(fromTimeStr) ? null : TimeOnly.Parse(fromTimeStr);
+                    food.AvailableToTime = string.IsNullOrEmpty(toTimeStr) ? null : TimeOnly.Parse(toTimeStr);
+                }
+                
+                await _foodService.UpdateFoodAsync(food);
+                return new { success = true, message = "可用时间设置成功" };
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = $"设置失败: {ex.Message}" });
+            }
+        }
+        
+        // 设置食物的排除规则(选中后多久内不再选择)
+        [HttpPost("foods/{id}/exclusionHours")]
+        public async Task<ActionResult<object>> SetFoodExclusionHours(int id, [FromBody] int hours)
+        {
+            var food = await _foodService.GetFoodAsync(id);
+            if (food == null)
+            {
+                return NotFound(new { success = false, message = "未找到该选项" });
+            }
+            
+            if (hours < 0 || hours > 168) // 最多一周(168小时)
+            {
+                return BadRequest(new { success = false, message = "排除小时数必须在0到168之间" });
+            }
+            
+            food.ExclusionHours = hours;
+            await _foodService.UpdateFoodAsync(food);
+            
+            return new { success = true, message = "排除规则设置成功" };
         }
     }
 }

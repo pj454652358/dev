@@ -9,15 +9,18 @@ namespace LunchWheelWeb.Controllers
         private readonly FoodService _foodService;
         private readonly HistoryService _historyService;
         private readonly SettingsService _settingsService;
+        private readonly CategoryService _categoryService;
 
         public HomeController(
             FoodService foodService, 
             HistoryService historyService, 
-            SettingsService settingsService)
+            SettingsService settingsService,
+            CategoryService categoryService)
         {
             _foodService = foodService;
             _historyService = historyService;
             _settingsService = settingsService;
+            _categoryService = categoryService;
         }
 
         public async Task<IActionResult> Index()
@@ -36,6 +39,17 @@ namespace LunchWheelWeb.Controllers
             // 获取设置
             var settings = await _settingsService.GetSettingsAsync();
             ViewBag.Settings = settings;
+            
+            // 获取分类列表
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            ViewBag.Categories = categories.Select(c => new
+            {
+                id = c.Id,
+                name = c.Name,
+                description = c.Description,
+                color = c.Color,
+                iconName = c.IconName
+            }).ToList();
             
             return View();
         }

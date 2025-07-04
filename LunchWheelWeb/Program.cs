@@ -19,6 +19,7 @@ builder.Services.AddScoped<FoodService>();
 builder.Services.AddScoped<HistoryService>();
 builder.Services.AddScoped<DbInitializerService>();
 builder.Services.AddScoped<SettingsService>();
+builder.Services.AddScoped<CategoryService>();
 
 var app = builder.Build();
 
