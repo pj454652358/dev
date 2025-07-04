@@ -144,12 +144,6 @@ function handleAddCategoryClick() {
         showNotification('添加分类失败', true);
     }
 }
-            if (e.key === 'Enter' && this.value.trim() !== '') {
-                document.getElementById('add-btn').click();
-            }
-        });
-    }
-}
 
 // 改进的设置折叠切换函数
 function toggleSettings(id) {
