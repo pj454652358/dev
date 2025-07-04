@@ -169,12 +169,17 @@ class ServerApi {
     }
     
     // 添加历史记录
-    static async addHistory(food) {
+    static async addHistory(food, categoryName = null, categoryColor = null) {
         try {
             const response = await fetch('/api/LunchWheel/history', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ food, time: new Date() })
+                body: JSON.stringify({ 
+                    food, 
+                    categoryName,
+                    categoryColor,
+                    time: new Date() 
+                })
             });
             return response.ok;
         } catch (error) {
@@ -1296,17 +1301,59 @@ class UIManager {
         this.historyList.innerHTML = '';
         
         if (history.length === 0) {
-            this.historyList.innerHTML = '<p>暂无历史记录</p>';
+            this.historyList.innerHTML = `
+                <div class="empty-history">
+                    <i class="fas fa-clock"></i>
+                    <p>暂无历史记录</p>
+                    <small>开始转盘后会在这里显示历史记录</small>
+                </div>
+            `;
             return;
         }
         
-        history.forEach(item => {
+        history.forEach((item, index) => {
             const listItem = document.createElement('div');
             listItem.className = 'history-item';
+            
+            // 格式化时间
+            const timeStr = item.time;
+            const formattedTime = new Date(timeStr).toLocaleDateString('zh-CN', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            // 创建分类标签
+            let categoryBadge = '';
+            if (item.categoryName) {
+                const badgeColor = item.categoryColor || '#95a5a6';
+                categoryBadge = `
+                    <span class="history-category-badge" style="background-color: ${badgeColor}">
+                        ${item.categoryName}
+                    </span>
+                `;
+            }
+            
             listItem.innerHTML = `
-                <span>${item.food}</span>
-                <span>${item.time}</span>
+                <div class="history-content">
+                    <div class="history-main">
+                        <div class="history-food">
+                            <i class="fas fa-star"></i>
+                            <span class="food-name">${item.food}</span>
+                            ${categoryBadge}
+                        </div>
+                        <div class="history-meta">
+                            <span class="history-time">
+                                <i class="fas fa-clock"></i>
+                                ${formattedTime}
+                            </span>
+                            <span class="history-index">#${history.length - index}</span>
+                        </div>
+                    </div>
+                </div>
             `;
+            
             this.historyList.appendChild(listItem);
         });
     }
@@ -1490,7 +1537,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         foodWheel.spin((result) => {
             const itemName = settings?.itemName || "选项";
             resultDiv.textContent = `选中${itemName}：${result}`;
-            // 刷新UI
+            
+            // 刷新UI（历史记录会自动更新，因为后端已经添加了）
             ui.reloadData();
         });
     });

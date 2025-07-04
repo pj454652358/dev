@@ -212,7 +212,7 @@ h1 {
 
 .btn-success {
     background: var(--secondary-color);
-    color: var(--white);
+    color: var,--white;
 }
 
 .btn-success:hover {
@@ -230,7 +230,7 @@ h1 {
 
 .btn-warning {
     background: var(--warning-color);
-    color: var(--white);
+    color: var,--white;
 }
 
 .btn-warning:hover {
@@ -1687,5 +1687,247 @@ input.success, select.success {
 
     .modal-actions .btn {
         width: 100%;
+    }
+}
+
+/* 历史记录页面美化样式 */
+
+/* 历史记录标题 */
+.tab-content#history-tab h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.tab-content#history-tab h3 i {
+    color: var(--primary-color);
+}
+
+/* 历史记录列表容器 */
+#history-list {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 2px solid var(--light-gray);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    background: var(--white);
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* 空历史记录状态 */
+.empty-history {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-history i {
+    font-size: 48px;
+    color: var(--gray);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-history p {
+    font-size: 18px;
+    margin: 16px 0 8px;
+    color: var(--text-primary);
+}
+
+.empty-history small {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+/* 历史记录项目 */
+.history-item {
+    background: var(--white);
+    border: 1px solid var(--light-gray);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    padding: 16px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.history-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+    transform: translateY(-1px);
+}
+
+.history-item:last-child {
+    margin-bottom: 0;
+}
+
+/* 历史记录内容 */
+.history-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.history-main {
+    flex: 1;
+}
+
+/* 食物名称区域 */
+.history-food {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.history-food i {
+    color: var(--warning-color);
+    font-size: 16px;
+}
+
+.history-food .food-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* 分类标签 */
+.history-category-badge {
+    display: inline-block;
+    background: var(--gray);
+    color: var(--white);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* 历史记录元信息 */
+.history-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.history-time {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.history-time i {
+    font-size: 12px;
+}
+
+.history-index {
+    background: var(--light-gray);
+    color: var(--text-primary);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 11px;
+}
+
+/* 清空历史按钮 */
+#clear-history {
+    width: 100%;
+    padding: 14px 20px;
+    background: var(--danger-color);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#clear-history:hover {
+    background: var(--danger-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+#clear-history:active {
+    transform: translateY(0);
+}
+
+#clear-history i {
+    font-size: 14px;
+}
+
+/* 历史记录滚动条美化 */
+#history-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+#history-list::-webkit-scrollbar-track {
+    background: var(--light-gray);
+    border-radius: 3px;
+}
+
+#history-list::-webkit-scrollbar-thumb {
+    background: var(--gray);
+    border-radius: 3px;
+}
+
+#history-list::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-gray);
+}
+
+/* 响应式优化 */
+@media (max-width: 480px) {
+    .history-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .history-food {
+        flex-wrap: wrap;
+    }
+    
+    .history-category-badge {
+        margin-left: 0;
+        margin-top: 4px;
+    }
+    
+    #history-list {
+        max-height: 300px;
+        padding: 12px;
+    }
+    
+    .history-item {
+        padding: 12px;
+    }
+}
+
+/* 历史记录动画效果 */
+.history-item {
+    animation: slideInHistory 0.3s ease;
+}
+
+@keyframes slideInHistory {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

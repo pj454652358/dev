@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "M/fPh+YAXzxWA0Ea+SfZNvkKOr6kB2NSDrFX8NyQq4w=",
+  "Hash": "TSIXVWmme89HUOPV0ApaPRxWtti2wZldhQbtdOwVsEg=",
   "Source": "LunchWheelWeb",
   "BasePath": "_content/LunchWheelWeb",
   "Mode": "Default",
@@ -281,6 +281,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/js/settings-enhanced-clean.js"
+    },
+    {
+      "Identity": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings-enhanced-fixed.js",
+      "SourceId": "LunchWheelWeb",
+      "SourceType": "Discovered",
+      "ContentRoot": "/workspaces/dev/LunchWheelWeb/wwwroot/",
+      "BasePath": "_content/LunchWheelWeb",
+      "RelativePath": "js/settings-enhanced-fixed.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/js/settings-enhanced-fixed.js"
     },
     {
       "Identity": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings-enhanced.js",

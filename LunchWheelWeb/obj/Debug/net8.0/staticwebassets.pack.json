@@ -57,6 +57,10 @@
       "PackagePath": "staticwebassets/js/settings-enhanced-clean.js"
     },
     {
+      "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings-enhanced-fixed.js",
+      "PackagePath": "staticwebassets/js/settings-enhanced-fixed.js"
+    },
+    {
       "Id": "/workspaces/dev/LunchWheelWeb/wwwroot/js/settings-enhanced.js",
       "PackagePath": "staticwebassets/js/settings-enhanced.js"
     },

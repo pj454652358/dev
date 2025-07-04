@@ -105,7 +105,9 @@ namespace LunchWheelWeb.Controllers
             var history = await _historyService.GetHistoryAsync();
             return history.Select(h => new {
                 food = h.Food,
-                time = h.Time.ToLocalTime().ToString(),
+                categoryName = h.CategoryName,
+                categoryColor = h.CategoryColor,
+                time = h.Time.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
                 saved = true
             }).ToList();
         }
@@ -129,9 +131,24 @@ namespace LunchWheelWeb.Controllers
                 // 随机选择食物
                 var (foodName, isRepeat, message) = await _foodService.GetRandomFoodAsync(categoryId: categoryId, lastSelected: lastSelected);
                 
-                // 添加到历史记录
+                // 获取选中食物的分类信息
+                var allFoods = await _foodService.GetAllFoodsAsync(null, null);
+                var foodWithCategory = allFoods.FirstOrDefault(f => f.Name == foodName);
+                
+                string? categoryName = null;
+                string? categoryColor = null;
+                
+                if (foodWithCategory?.Category != null)
+                {
+                    categoryName = foodWithCategory.Category.Name;
+                    categoryColor = foodWithCategory.Category.Color;
+                }
+                
+                // 添加到历史记录，包含分类信息
                 await _historyService.AddHistoryAsync(new History { 
-                    Food = foodName, 
+                    Food = foodName,
+                    CategoryName = categoryName,
+                    CategoryColor = categoryColor,
                     Time = DateTime.UtcNow 
                 });
                 
