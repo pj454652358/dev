@@ -310,6 +310,34 @@ class ServerApi {
             return { success: false, message: '设置排除规则失败' };
         }
     }
+    
+    // 添加单个食物（带分类信息）
+    static async addFood(food) {
+        try {
+            const response = await fetch('/api/LunchWheel/foods/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(food)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('添加食物失败:', error);
+            return { success: false, message: '添加食物失败' };
+        }
+    }
+    
+    // 删除食物
+    static async deleteFood(id) {
+        try {
+            const response = await fetch(`/api/LunchWheel/foods/${id}`, {
+                method: 'DELETE'
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('删除食物失败:', error);
+            return { success: false, message: '删除食物失败' };
+        }
+    }
 }
 
 // 食物转盘类
@@ -853,15 +881,22 @@ class UIManager {
         // 从设置页面的筛选下拉框获取选中的分类ID
         if (this.filterCategorySelect) {
             selectedCategoryId = this.filterCategorySelect.value;
-            console.log("筛选分类ID:", selectedCategoryId);
+            console.log("筛选分类ID:", selectedCategoryId, "类型:", typeof selectedCategoryId);
         }
         
         // 筛选食物
-        if (selectedCategoryId) {
-            filteredFoods = foodsData.filter(food => food.categoryId == selectedCategoryId);
+        if (selectedCategoryId && selectedCategoryId !== "") {
+            // 确保类型匹配 - 将字符串转换为数字进行比较
+            const categoryIdNum = parseInt(selectedCategoryId);
+            filteredFoods = foodsData.filter(food => {
+                console.log(`食物: ${food.name}, categoryId: ${food.categoryId} (类型: ${typeof food.categoryId}), 比较值: ${categoryIdNum}`);
+                return food.categoryId === categoryIdNum;
+            });
             console.log(`筛选后的选项数量: ${filteredFoods.length}`);
+            console.log("筛选后的选项:", filteredFoods.map(f => f.name));
         } else {
             filteredFoods = [...foodsData];
+            console.log("显示所有选项, 总数:", filteredFoods.length);
         }
         
         // 更新UI
@@ -1086,17 +1121,55 @@ class UIManager {
         this.availableToTime.value = food.availableToTime || '';
         this.exclusionHoursInput.value = food.exclusionHours || 0;
         
+        // 更新权重显示
+        const weightValue = document.querySelector('.weight-value strong');
+        if (weightValue) {
+            weightValue.textContent = food.weight || 1;
+        }
+        
         // 显示模态框
         this.advancedSettingsModal.style.display = 'block';
+        
+        // 重新初始化权重滑块事件
+        this.initializeWeightSlider();
+    }
+    
+    // 初始化权重滑块
+    initializeWeightSlider() {
+        if (this.foodWeightInput) {
+            const weightOutput = this.foodWeightInput.nextElementSibling;
+            const weightValue = document.querySelector('.weight-value strong');
+            
+            // 移除旧的事件监听器（如果存在）
+            this.foodWeightInput.removeEventListener('input', this.weightInputHandler);
+            
+            // 创建新的事件处理器
+            this.weightInputHandler = (e) => {
+                const value = e.target.value;
+                if (weightOutput) weightOutput.textContent = value;
+                if (weightValue) weightValue.textContent = value;
+            };
+            
+            // 添加新的事件监听器
+            this.foodWeightInput.addEventListener('input', this.weightInputHandler);
+        }
     }
     
     // 保存高级设置
     async saveAdvancedFoodSettings() {
         const foodId = this.currentEditingFoodId;
-        if (!foodId) return;
+        if (!foodId) {
+            console.error('没有选中的食物ID');
+            return;
+        }
         
         const food = foodsData.find(f => f.id === foodId);
-        if (!food) return;
+        if (!food) {
+            console.error('未找到食物数据:', foodId);
+            return;
+        }
+        
+        console.log('正在保存食物设置:', food.name, 'ID:', foodId);
         
         // 获取表单值
         const weight = parseInt(this.foodWeightInput.value);
@@ -1106,10 +1179,14 @@ class UIManager {
         const toTime = this.availableToTime.value;
         const exclusionHours = parseInt(this.exclusionHoursInput.value);
         
+        console.log('表单值:', { weight, isFavorite, categoryId, fromTime, toTime, exclusionHours });
+        
         try {
             // 更新权重
             if (weight !== food.weight) {
+                console.log('更新权重:', weight);
                 const weightResult = await ServerApi.setFoodWeight(foodId, weight);
+                console.log('权重更新结果:', weightResult);
                 if (!weightResult.success) {
                     showMessage(weightResult.message, 'error');
                     return;
@@ -1118,7 +1195,9 @@ class UIManager {
             
             // 更新喜爱标记
             if (isFavorite !== food.isFavorite) {
+                console.log('更新喜爱标记:', isFavorite);
                 const favoriteResult = await ServerApi.setFoodFavorite(foodId, isFavorite);
+                console.log('喜爱标记更新结果:', favoriteResult);
                 if (!favoriteResult.success) {
                     showMessage(favoriteResult.message, 'error');
                     return;
@@ -1188,29 +1267,23 @@ class UIManager {
         };
         
         try {
-            // 先临时添加到本地数据
-            foods.push(foodName);
+            // 使用新的API接口添加食物
+            const result = await ServerApi.addFood(newFood);
             
-            // 清空输入框
-            this.newFoodInput.value = '';
-            
-            // 更新UI
-            this.updateFoodsList();
-            this.foodWheel.updateFoods(foods);
-            
-            // 保存到服务器
-            await this.saveSettings();
-            
-            // 重新加载食物数据
-            await this.loadFoods();
+            if (result.success) {
+                // 清空输入框
+                this.newFoodInput.value = '';
+                
+                // 重新加载数据以获取最新状态
+                await this.loadFoods();
+                
+                showMessage(result.message || '添加成功', 'success');
+            } else {
+                showMessage(result.message || '添加失败', 'error');
+            }
         } catch (error) {
             console.error('添加食物失败:', error);
             showMessage('添加选项失败', 'error');
-            
-            // 从本地数据中移除
-            foods = foods.filter(f => f !== foodName);
-            this.updateFoodsList();
-            this.foodWheel.updateFoods(foods);
         }
     }
     
@@ -1219,17 +1292,23 @@ class UIManager {
         if (!confirm(`确定要删除选项"${food.name}"吗？`)) return;
         
         try {
-            // 从本地数据中先移除
-            foods = foods.filter(f => f !== food.name);
-            foodsData = foodsData.filter(f => f.id !== food.id);
-            filteredFoods = filteredFoods.filter(f => f.id !== food.id);
+            // 调用API删除食物
+            const result = await ServerApi.deleteFood(food.id);
             
-            // 更新UI
-            this.updateFoodsList();
-            this.foodWheel.updateFoods(foods);
-            
-            // 保存到服务器
-            await this.saveSettings();
+            if (result.success) {
+                // 从本地数据中移除
+                foods = foods.filter(f => f !== food.name);
+                foodsData = foodsData.filter(f => f.id !== food.id);
+                filteredFoods = filteredFoods.filter(f => f.id !== food.id);
+                
+                // 更新UI
+                this.updateFoodsList();
+                this.foodWheel.updateFoods(foods);
+                
+                showMessage(result.message || '选项删除成功', 'success');
+            } else {
+                showMessage(result.message || '删除选项失败', 'error');
+            }
         } catch (error) {
             console.error('删除选项失败:', error);
             showMessage('删除选项失败', 'error');

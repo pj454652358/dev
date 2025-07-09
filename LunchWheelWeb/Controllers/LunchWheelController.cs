@@ -408,5 +408,65 @@ namespace LunchWheelWeb.Controllers
             
             return new { success = true, message = "排除规则设置成功" };
         }
+
+        // 添加单个食物（带分类信息）
+        [HttpPost("foods/add")]
+        public async Task<ActionResult> AddFood([FromBody] AddFoodRequest request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.Name))
+                {
+                    return BadRequest(new { success = false, message = "食物名称不能为空" });
+                }
+
+                var food = new Food 
+                { 
+                    Name = request.Name.Trim(),
+                    CategoryId = request.CategoryId,
+                    Weight = request.Weight ?? 1,
+                    IsFavorite = request.IsFavorite ?? false
+                };
+
+                var result = await _foodService.AddFoodAsync(food);
+                
+                if (result.success)
+                {
+                    return Ok(new { success = true, message = result.message });
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = result.message });
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"添加食物时发生错误: {ex.Message}" });
+            }
+        }
+
+        // 删除单个食物
+        [HttpDelete("foods/{id}")]
+        public async Task<ActionResult<object>> DeleteFood(int id)
+        {
+            try
+            {
+                await _foodService.DeleteFoodAsync(id);
+                return new { success = true, message = "食物删除成功" };
+            }
+            catch (Exception ex)
+            {
+                return new { success = false, message = $"删除食物时发生错误: {ex.Message}" };
+            }
+        }
+
+        // 请求模型
+        public class AddFoodRequest
+        {
+            public string Name { get; set; } = "";
+            public int? CategoryId { get; set; }
+            public int? Weight { get; set; }
+            public bool? IsFavorite { get; set; }
+        }
     }
 }

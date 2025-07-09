@@ -297,17 +297,42 @@ button.clicked {
     color: var(--text-secondary);
     padding: 6px;
     border-radius: var(--border-radius);
-    transition: var(--transition);
+    transition: all 0.3s ease;
     width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .category-actions button:hover {
-    background: var(--light-gray);
+    background: rgba(231, 76, 60, 0.1);
     color: var(--danger-color);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+.category-actions button:active {
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+}
+
+/* 为删除按钮添加特殊的hover效果 */
+.category-actions .delete-category:hover {
+    background: rgba(231, 76, 60, 0.15);
+    color: #c0392b;
+    transform: scale(1.15);
+    box-shadow: 0 3px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* 为编辑按钮添加不同的hover效果 */
+.category-actions .edit-category:hover {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--primary-color);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
 }
 
 /* 扁平化添加分类 */
@@ -458,12 +483,14 @@ button.clicked {
     cursor: pointer;
     padding: 6px;
     border-radius: var(--border-radius);
-    transition: var(--transition);
+    transition: all 0.3s ease;
     width: 28px;
     height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
 
 .edit-btn {
@@ -472,6 +499,8 @@ button.clicked {
 
 .edit-btn:hover {
     background: rgba(52, 152, 219, 0.1);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
 }
 
 .delete-btn {
@@ -479,7 +508,15 @@ button.clicked {
 }
 
 .delete-btn:hover {
-    background: rgba(231, 76, 60, 0.1);
+    background: rgba(231, 76, 60, 0.15);
+    color: #c0392b;
+    transform: scale(1.15);
+    box-shadow: 0 3px 12px rgba(231, 76, 60, 0.3);
+}
+
+.food-actions button:active {
+    transform: scale(0.95);
+    transition: all 0.1s ease;
 }
 
 /* 扁平化添加食物 */

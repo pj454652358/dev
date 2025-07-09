@@ -211,12 +211,37 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
 
 .category-actions button:hover {
-    background-color: rgba(0,0,0,0.05);
+    background-color: rgba(231, 76, 60, 0.1);
     color: #e74c3c;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+}
+
+.category-actions button:active {
+    transform: scale(0.95);
+    transition: all 0.1s ease;
+}
+
+/* 为删除按钮添加特殊的hover效果 */
+.category-actions .delete-category:hover {
+    background-color: rgba(231, 76, 60, 0.15);
+    color: #c0392b;
+    transform: scale(1.15);
+    box-shadow: 0 3px 12px rgba(231, 76, 60, 0.3);
+}
+
+/* 为编辑按钮添加不同的hover效果 */
+.category-actions .edit-category:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+    color: #3498db;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
 }
 
 /* 添加分类样式增强 */
