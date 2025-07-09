@@ -944,22 +944,23 @@ button.clicked {
     font-size: 12px;
 }
 
-/* JavaScript控制的选中状态 */
+/* JavaScript控制的选中状态 - 最高优先级 */
 .checkmark.checked {
-    background: var(--danger-color) !important;
-    border-color: var(--danger-color) !important;
+    background: #e74c3c !important;
+    border-color: #e74c3c !important;
 }
 
-.checkmark.checked:after {
-    content: "\f00c" !important;
-    font-family: "Font Awesome 5 Free" !important;
-    font-weight: 900 !important;
+.checkmark.checked::after {
+    content: "✓" !important;
     position: absolute !important;
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
     color: white !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
+    font-weight: bold !important;
+    display: block !important;
+    line-height: 1 !important;
 }
 
 .checkbox-text {
@@ -1998,15 +1999,15 @@ input.success, select.success {
 }
 
 .checkmark.checked:after {
-    content: "\f00c";
-    font-family: "Font Awesome 5 Free";
-    font-weight: 900;
+    content: "✓";
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     color: white;
-    font-size: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    line-height: 1;
 }
 
 /* 确保复选框标签可点击 */

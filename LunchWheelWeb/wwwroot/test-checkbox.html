@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复选框测试</title>
+    <link rel="stylesheet" href="~/css/flat-design.css">
+    <link rel="stylesheet" href="~/assets/css/all.min.css">
+    <style>
+        body {
+            padding: 50px;
+            font-family: Arial, sans-serif;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        /* 基础复选框样式 */
+        .basic-checkbox {
+            margin: 10px 0;
+        }
+        
+        .basic-checkbox input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        
+        /* 自定义复选框样式 */
+        .custom-checkbox-wrapper {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .custom-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-bottom: 0;
+        }
+        
+        .custom-checkbox-label input[type="checkbox"] {
+            display: none;
+        }
+        
+        .custom-checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        
+        .custom-checkbox-label input[type="checkbox"]:checked + .custom-checkmark {
+            background: #e74c3c;
+            border-color: #e74c3c;
+        }
+        
+        .custom-checkbox-label input[type="checkbox"]:checked + .custom-checkmark:after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* JavaScript控制的选中状态 */
+        .custom-checkmark.checked {
+            background: #e74c3c !important;
+            border-color: #e74c3c !important;
+        }
+        
+        .custom-checkmark.checked:after {
+            content: "✓" !important;
+            position: absolute !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            color: white !important;
+            font-size: 12px !important;
+            font-weight: bold !important;
+        }
+        
+        .status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        
+        .checked-status {
+            color: green;
+        }
+        
+        .unchecked-status {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>复选框测试页面</h1>
+    
+    <!-- 测试1: 基础HTML复选框 -->
+    <div class="test-section">
+        <h3>测试1: 基础HTML复选框</h3>
+        <div class="basic-checkbox">
+            <label>
+                <input type="checkbox" id="basic-checkbox"> 基础复选框（应该可以正常工作）
+            </label>
+        </div>
+        <div class="status" id="basic-status">状态: 未选中</div>
+    </div>
+    
+    <!-- 测试2: 自定义样式复选框（CSS选择器） -->
+    <div class="test-section">
+        <h3>测试2: 自定义样式复选框（CSS选择器）</h3>
+        <div class="custom-checkbox-wrapper">
+            <label class="custom-checkbox-label">
+                <input type="checkbox" id="custom-checkbox-css"> 
+                <span class="custom-checkmark"></span>
+                <span>自定义复选框（CSS选择器）</span>
+            </label>
+        </div>
+        <div class="status" id="custom-css-status">状态: 未选中</div>
+    </div>
+    
+    <!-- 测试3: JavaScript控制的复选框 -->
+    <div class="test-section">
+        <h3>测试3: JavaScript控制的复选框</h3>
+        <div class="custom-checkbox-wrapper" id="js-checkbox-wrapper">
+            <label class="custom-checkbox-label">
+                <input type="checkbox" id="custom-checkbox-js"> 
+                <span class="custom-checkmark" id="js-checkmark"></span>
+                <span>JavaScript控制的复选框</span>
+            </label>
+        </div>
+        <div class="status" id="custom-js-status">状态: 未选中</div>
+        <button id="toggle-js-checkbox">JavaScript切换</button>
+    </div>
+    
+    <!-- 测试4: 完全模拟food-favorite -->
+    <div class="test-section">
+        <h3>测试4: 完全模拟food-favorite复选框</h3>
+        <div class="setting-group favorite-setting">
+            <div class="checkbox-wrapper">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="food-favorite-test"> 
+                    <span class="checkmark"></span>
+                    <span class="checkbox-text"><i class="fas fa-star"></i> 设为喜爱</span>
+                </label>
+                <p class="setting-hint">喜爱选项权重自动翻倍</p>
+            </div>
+        </div>
+        <div class="status" id="food-favorite-status">状态: 未选中</div>
+        <button id="toggle-food-favorite">JavaScript切换</button>
+    </div>
+
+    <script>
+        // 测试1: 基础复选框
+        const basicCheckbox = document.getElementById('basic-checkbox');
+        const basicStatus = document.getElementById('basic-status');
+        
+        basicCheckbox.addEventListener('change', function() {
+            basicStatus.textContent = `状态: ${this.checked ? '选中' : '未选中'}`;
+            basicStatus.className = this.checked ? 'status checked-status' : 'status unchecked-status';
+        });
+        
+        // 测试2: CSS选择器复选框
+        const customCssCheckbox = document.getElementById('custom-checkbox-css');
+        const customCssStatus = document.getElementById('custom-css-status');
+        
+        customCssCheckbox.addEventListener('change', function() {
+            customCssStatus.textContent = `状态: ${this.checked ? '选中' : '未选中'}`;
+            customCssStatus.className = this.checked ? 'status checked-status' : 'status unchecked-status';
+        });
+        
+        // 测试3: JavaScript控制的复选框
+        const customJsCheckbox = document.getElementById('custom-checkbox-js');
+        const customJsStatus = document.getElementById('custom-js-status');
+        const jsCheckmark = document.getElementById('js-checkmark');
+        const jsWrapper = document.getElementById('js-checkbox-wrapper');
+        const toggleJsBtn = document.getElementById('toggle-js-checkbox');
+        
+        function updateJsCheckbox() {
+            customJsStatus.textContent = `状态: ${customJsCheckbox.checked ? '选中' : '未选中'}`;
+            customJsStatus.className = customJsCheckbox.checked ? 'status checked-status' : 'status unchecked-status';
+            
+            if (customJsCheckbox.checked) {
+                jsCheckmark.classList.add('checked');
+            } else {
+                jsCheckmark.classList.remove('checked');
+            }
+        }
+        
+        customJsCheckbox.addEventListener('change', updateJsCheckbox);
+        
+        jsWrapper.addEventListener('click', function(e) {
+            if (e.target !== customJsCheckbox) {
+                e.preventDefault();
+                customJsCheckbox.checked = !customJsCheckbox.checked;
+                customJsCheckbox.dispatchEvent(new Event('change'));
+            }
+        });
+        
+        toggleJsBtn.addEventListener('click', function() {
+            customJsCheckbox.checked = !customJsCheckbox.checked;
+            customJsCheckbox.dispatchEvent(new Event('change'));
+        });
+        
+        // 测试4: food-favorite模拟
+        const foodFavoriteTest = document.getElementById('food-favorite-test');
+        const foodFavoriteStatus = document.getElementById('food-favorite-status');
+        const toggleFoodFavoriteBtn = document.getElementById('toggle-food-favorite');
+        
+        function updateFoodFavorite() {
+            foodFavoriteStatus.textContent = `状态: ${foodFavoriteTest.checked ? '选中' : '未选中'}`;
+            foodFavoriteStatus.className = foodFavoriteTest.checked ? 'status checked-status' : 'status unchecked-status';
+            
+            const checkmark = foodFavoriteTest.nextElementSibling;
+            if (foodFavoriteTest.checked) {
+                checkmark.classList.add('checked');
+            } else {
+                checkmark.classList.remove('checked');
+            }
+        }
+        
+        foodFavoriteTest.addEventListener('change', updateFoodFavorite);
+        
+        // 点击整个wrapper时切换状态
+        const foodFavoriteWrapper = foodFavoriteTest.closest('.checkbox-wrapper');
+        if (foodFavoriteWrapper) {
+            foodFavoriteWrapper.addEventListener('click', function(e) {
+                if (e.target !== foodFavoriteTest) {
+                    e.preventDefault();
+                    foodFavoriteTest.checked = !foodFavoriteTest.checked;
+                    foodFavoriteTest.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+        
+        toggleFoodFavoriteBtn.addEventListener('click', function() {
+            foodFavoriteTest.checked = !foodFavoriteTest.checked;
+            foodFavoriteTest.dispatchEvent(new Event('change'));
+        });
+        
+        // 初始化状态
+        updateJsCheckbox();
+        updateFoodFavorite();
+        
+        // 调试信息
+        console.log('所有复选框元素:');
+        console.log('基础复选框:', basicCheckbox);
+        console.log('CSS复选框:', customCssCheckbox);
+        console.log('JS复选框:', customJsCheckbox);
+        console.log('food-favorite测试:', foodFavoriteTest);
+    </script>
+</body>
+</html>

@@ -1168,12 +1168,14 @@ class UIManager {
         const favoriteCheckbox = document.getElementById('food-favorite');
         const checkboxWrapper = document.querySelector('.checkbox-wrapper');
         const checkboxLabel = document.querySelector('.checkbox-label');
+        const checkmark = document.querySelector('.checkmark');
         
-        if (favoriteCheckbox) {
+        if (favoriteCheckbox && checkmark) {
             // 移除所有旧的事件监听器
             if (this.checkboxClickHandler) {
                 checkboxWrapper?.removeEventListener('click', this.checkboxClickHandler);
                 checkboxLabel?.removeEventListener('click', this.checkboxClickHandler);
+                checkmark?.removeEventListener('click', this.checkboxClickHandler);
             }
             
             // 创建新的事件处理器
@@ -1184,25 +1186,35 @@ class UIManager {
                 // 切换复选框状态
                 favoriteCheckbox.checked = !favoriteCheckbox.checked;
                 
-                // 触发change事件
-                favoriteCheckbox.dispatchEvent(new Event('change'));
-                
                 // 立即更新视觉状态
                 this.updateCheckmarkVisual();
+                
+                // 触发change事件
+                favoriteCheckbox.dispatchEvent(new Event('change'));
                 
                 console.log('复选框状态已切换为:', favoriteCheckbox.checked);
             };
             
-            // 绑定到整个包装器和标签
+            // 绑定到所有可能的点击目标
             if (checkboxWrapper) {
                 checkboxWrapper.addEventListener('click', this.checkboxClickHandler);
             }
             if (checkboxLabel) {
                 checkboxLabel.addEventListener('click', this.checkboxClickHandler);
             }
+            if (checkmark) {
+                checkmark.addEventListener('click', this.checkboxClickHandler);
+            }
             
             // 初始化视觉状态
             this.updateCheckmarkVisual();
+            
+            console.log('复选框事件已初始化，当前状态:', favoriteCheckbox.checked);
+        } else {
+            console.error('无法找到复选框元素:', {
+                favoriteCheckbox: !!favoriteCheckbox,
+                checkmark: !!checkmark
+            });
         }
     }
     
@@ -1212,11 +1224,23 @@ class UIManager {
         const checkmark = document.querySelector('.checkmark');
         
         if (favoriteCheckbox && checkmark) {
+            console.log('更新checkmark视觉状态:', favoriteCheckbox.checked);
+            
             if (favoriteCheckbox.checked) {
                 checkmark.classList.add('checked');
+                console.log('添加了checked类');
             } else {
                 checkmark.classList.remove('checked');
+                console.log('移除了checked类');
             }
+            
+            // 验证类是否正确添加
+            console.log('checkmark当前类列表:', checkmark.classList.toString());
+        } else {
+            console.error('无法找到元素进行视觉更新:', {
+                favoriteCheckbox: !!favoriteCheckbox,
+                checkmark: !!checkmark
+            });
         }
     }
     
