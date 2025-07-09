@@ -1132,6 +1132,14 @@ class UIManager {
         
         // 重新初始化权重滑块事件
         this.initializeWeightSlider();
+        
+        // 重新初始化复选框事件
+        this.initializeCheckboxEvents();
+        
+        // 确保复选框视觉状态正确
+        setTimeout(() => {
+            this.updateCheckmarkVisual();
+        }, 10);
     }
     
     // 初始化权重滑块
@@ -1152,6 +1160,63 @@ class UIManager {
             
             // 添加新的事件监听器
             this.foodWeightInput.addEventListener('input', this.weightInputHandler);
+        }
+    }
+    
+    // 初始化复选框事件
+    initializeCheckboxEvents() {
+        const favoriteCheckbox = document.getElementById('food-favorite');
+        const checkboxWrapper = document.querySelector('.checkbox-wrapper');
+        const checkboxLabel = document.querySelector('.checkbox-label');
+        
+        if (favoriteCheckbox) {
+            // 移除所有旧的事件监听器
+            if (this.checkboxClickHandler) {
+                checkboxWrapper?.removeEventListener('click', this.checkboxClickHandler);
+                checkboxLabel?.removeEventListener('click', this.checkboxClickHandler);
+            }
+            
+            // 创建新的事件处理器
+            this.checkboxClickHandler = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // 切换复选框状态
+                favoriteCheckbox.checked = !favoriteCheckbox.checked;
+                
+                // 触发change事件
+                favoriteCheckbox.dispatchEvent(new Event('change'));
+                
+                // 立即更新视觉状态
+                this.updateCheckmarkVisual();
+                
+                console.log('复选框状态已切换为:', favoriteCheckbox.checked);
+            };
+            
+            // 绑定到整个包装器和标签
+            if (checkboxWrapper) {
+                checkboxWrapper.addEventListener('click', this.checkboxClickHandler);
+            }
+            if (checkboxLabel) {
+                checkboxLabel.addEventListener('click', this.checkboxClickHandler);
+            }
+            
+            // 初始化视觉状态
+            this.updateCheckmarkVisual();
+        }
+    }
+    
+    // 更新checkmark视觉状态
+    updateCheckmarkVisual() {
+        const favoriteCheckbox = document.getElementById('food-favorite');
+        const checkmark = document.querySelector('.checkmark');
+        
+        if (favoriteCheckbox && checkmark) {
+            if (favoriteCheckbox.checked) {
+                checkmark.classList.add('checked');
+            } else {
+                checkmark.classList.remove('checked');
+            }
         }
     }
     

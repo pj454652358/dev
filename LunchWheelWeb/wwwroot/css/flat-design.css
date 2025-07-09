@@ -890,18 +890,16 @@ button.clicked {
     font-size: 16px;
 }
 
-/* 喜爱设置样式 */
-.favorite-setting {
-    background: linear-gradient(135deg, #fff0f0 0%, #fff 100%);
-    border-left: 4px solid var(--danger-color);
-}
-
+/* 复选框包装器 */
 .checkbox-wrapper {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    cursor: pointer;
+    user-select: none;
 }
 
+/* 复选框标签 */
 .checkbox-label {
     display: flex !important;
     align-items: center;
@@ -909,12 +907,15 @@ button.clicked {
     cursor: pointer;
     font-weight: 500 !important;
     margin-bottom: 0 !important;
+    user-select: none;
 }
 
+/* 隐藏原生复选框 */
 .checkbox-label input[type="checkbox"] {
     display: none;
 }
 
+/* 自定义复选框外观 */
 .checkmark {
     width: 20px;
     height: 20px;
@@ -922,8 +923,10 @@ button.clicked {
     border-radius: var(--border-radius);
     position: relative;
     transition: var(--transition);
+    flex-shrink: 0;
 }
 
+/* 选中状态的checkmark - 通过CSS选择器 */
 .checkbox-label input[type="checkbox"]:checked + .checkmark {
     background: var(--danger-color);
     border-color: var(--danger-color);
@@ -939,6 +942,24 @@ button.clicked {
     transform: translate(-50%, -50%);
     color: white;
     font-size: 12px;
+}
+
+/* JavaScript控制的选中状态 */
+.checkmark.checked {
+    background: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+}
+
+.checkmark.checked:after {
+    content: "\f00c" !important;
+    font-family: "Font Awesome 5 Free" !important;
+    font-weight: 900 !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    color: white !important;
+    font-size: 12px !important;
 }
 
 .checkbox-text {
@@ -986,6 +1007,7 @@ button.clicked {
     display: flex;
     align-items: center;
     gap: 15px;
+    margin-bottom: 10px;
 }
 
 .flat-time {
@@ -1967,4 +1989,38 @@ input.success, select.success {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* 支持JavaScript直接控制的复选框样式 */
+.checkmark.checked {
+    background: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+.checkmark.checked:after {
+    content: "\f00c";
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+}
+
+/* 确保复选框标签可点击 */
+.checkbox-label {
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-wrapper {
+    cursor: pointer;
+}
+
+/* 喜爱设置样式 */
+.favorite-setting {
+    background: linear-gradient(135deg, #fff0f0 0%, #fff 100%);
+    border-left: 4px solid var(--danger-color);
 }
