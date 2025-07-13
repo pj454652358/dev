@@ -1686,10 +1686,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     function getCurrentSelectedFood(wheel) {
         if (wheel.foods.length === 0) return "";
         
-        const sectorAngle = 360 / wheel.foods.length;
-        const deg = (wheel.angle % 360 + 360) % 360;
-        const pointerDeg = (270 - deg + 360) % 360;
-        const idx = Math.floor(pointerDeg / sectorAngle) % wheel.foods.length;
+        // 使用与绘制逻辑相同的计算方式
+        const arc = 2 * Math.PI / wheel.foods.length; // 每个扇形的弧度
+        const currentAngleRad = (wheel.angle % 360) * Math.PI / 180; // 当前角度转换为弧度
+        
+        // 指针在270度位置（即-Math.PI/2弧度或3*Math.PI/2弧度）
+        // 由于转盘旋转了currentAngleRad，指针相对于转盘的角度是
+        const pointerRelativeRad = (3 * Math.PI / 2 - currentAngleRad + 2 * Math.PI) % (2 * Math.PI);
+        
+        // 计算指针指向的扇形索引
+        // 扇形i的范围是 [i * arc, (i + 1) * arc]
+        const idx = Math.floor(pointerRelativeRad / arc) % wheel.foods.length;
+        
         return wheel.foods[idx];
     }
     
@@ -1706,8 +1714,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const itemName = settings?.itemName || "选项";
             resultDiv.textContent = `选中${itemName}：${result}`;
             
-            // 刷新UI（历史记录会自动更新，因为后端已经添加了）
-            ui.reloadData();
+            // 只更新历史记录，不重新加载所有数据以避免转盘角度重置
+            ui.loadHistory();
         });
     });
     
